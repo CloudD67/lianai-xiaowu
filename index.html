@@ -8,8 +8,4032 @@
   
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* ==================== CSS Variables - 主题管理 ==================== */
+    :root {
+      /* 晨光主题（默认） */
+      --bg-color: #FDF6F0;
+      --bg-gradient: linear-gradient(135deg, #FDF6F0 0%, #FFE8DC 100%);
+      --primary-color: #FDE2D3;
+      --primary-dark: #E8C9B4;
+      --text-color: #4A4A4A;
+      --text-secondary: #7A7A7A;
+      --card-bg: #FFFFFF;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --button-bg: #FDE2D3;
+      --button-text: #FFFFFF;
+      --button-hover: #E8C9B4;
+      --input-bg: #FFFFFF;
+      --input-border: #E0E0E0;
+      --input-focus: #FDE2D3;
+      --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      --font-rounded: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      --tab-active: #FDE2D3;
+      --tab-inactive: #E0E0E0;
+      --checkin-done: #90EE90;
+      --love-quote-bg: linear-gradient(135deg, #FFE8DC 0%, #FDE2D3 100%);
+      --shadow-color: 253, 226, 211;
+      
+      /* 通用变量 */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --border-radius: 12px;
+      --border-radius-lg: 20px;
+      --border-radius-sm: 8px;
+      --transition-fast: 0.2s ease;
+      --transition-medium: 0.3s ease;
+      --transition-slow: 0.5s ease;
+    }
+    
+    /* 森林主题 */
+    [data-theme="forest"] {
+      --bg-color: #F0F5EC;
+      --bg-gradient: linear-gradient(135deg, #F0F5EC 0%, #E8F0E3 100%);
+      --primary-color: #D4C5A9;
+      --primary-dark: #B8A88D;
+      --text-color: #2D2D2D;
+      --text-secondary: #5A5A5A;
+      --card-bg: #FFFFFF;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --button-bg: #D4C5A9;
+      --button-hover: #B8A88D;
+      --input-focus: #D4C5A9;
+      --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      --tab-active: #D4C5A9;
+      --love-quote-bg: linear-gradient(135deg, #E8F0E3 0%, #D4C5A9 100%);
+      --shadow-color: 212, 197, 169;
+    }
+    
+    /* ==================== 全局样式 ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 移除移动端点击高亮 */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* ==================== 页面容器 ==================== */
+    .page {
+      display: none;
+      min-height: 100vh;
+      animation: fadeIn var(--transition-medium);
+    }
+    
+    .page.active {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* ==================== 登录/注册页 ==================== */
+    #auth-page {
+      justify-content: center;
+      align-items: center;
+      padding: var(--spacing-lg);
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      padding: var(--spacing-xl);
+      animation: slideUp var(--transition-medium);
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .auth-logo {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .auth-logo h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: var(--spacing-sm);
+      font-family: var(--font-rounded);
+    }
+    
+    .auth-logo p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .auth-tabs {
+      display: flex;
+      margin-bottom: var(--spacing-lg);
+      border-radius: var(--border-radius);
+      background: var(--bg-color);
+      padding: var(--spacing-xs);
+    }
+    
+    .auth-tab {
+      flex: 1;
+      padding: var(--spacing-md);
+      border-radius: var(--border-radius);
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .auth-tab.active {
+      background: var(--primary-color);
+      color: var(--text-color);
+    }
+    
+    .auth-form {
+      display: none;
+    }
+    
+    .auth-form.active {
+      display: block;
+      animation: fadeIn var(--transition-fast);
+    }
+    
+    .form-group {
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: var(--spacing-sm);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-family: var(--font-family);
+      background: var(--input-bg);
+      transition: all var(--transition-fast);
+      color: var(--text-color);
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px rgba(var(--shadow-color), 0.2);
+    }
+    
+    .form-input::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    .form-error {
+      color: #E74C3C;
+      font-size: 12px;
+      margin-top: var(--spacing-sm);
+      display: none;
+    }
+    
+    .form-error.show {
+      display: block;
+      animation: shake 0.3s;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .auth-button {
+      width: 100%;
+      padding: var(--spacing-md);
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--button-text);
+      background: var(--button-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: var(--font-family);
+    }
+    
+    .auth-button:hover {
+      background: var(--button-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .auth-button:active {
+      transform: translateY(0);
+    }
+    
+    .auth-button.loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    .forgot-password-link {
+      text-align: center;
+      margin-top: var(--spacing-md);
+    }
+    
+    .forgot-password-link a {
+      color: var(--text-secondary);
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .forgot-password-link a:hover {
+      color: var(--primary-dark);
+    }
+    
+    /* ==================== 房间引导页 ==================== */
+    #room-guide-page {
+      justify-content: center;
+      align-items: center;
+      padding: var(--spacing-lg);
+    }
+    
+    .room-guide-container {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: slideUp var(--transition-medium);
+    }
+    
+    .room-guide-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-lg);
+      font-family: var(--font-rounded);
+    }
+    
+    .room-guide-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xl);
+      line-height: 1.6;
+    }
+    
+    .room-guide-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    
+    .guide-button {
+      width: 100%;
+      padding: var(--spacing-lg);
+      border: none;
+      border-radius: var(--border-radius-lg);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--button-text);
+      background: var(--button-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: var(--font-family);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+    }
+    
+    .guide-button:hover {
+      background: var(--button-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .guide-button.join {
+      background: var(--card-bg);
+      color: var(--text-color);
+      border: 2px solid var(--primary-color);
+    }
+    
+    .guide-button.join:hover {
+      background: var(--primary-color);
+      color: var(--button-text);
+    }
+    
+    /* 加入房间模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn var(--transition-fast);
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      width: 90%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-xl);
+      animation: slideUp var(--transition-medium);
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+    
+    .modal-close {
+      width: 100%;
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      cursor: pointer;
+      margin-top: var(--spacing-md);
+      transition: all var(--transition-fast);
+    }
+    
+    .modal-close:hover {
+      border-color: var(--primary-color);
+      color: var(--text-color);
+    }
+    
+    /* ==================== 主应用容器 ==================== */
+    .main-app {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .main-app.active {
+      display: flex;
+    }
+    
+    /* 主内容区域 */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 100px; /* 为底部Tab和版本号留空间 */
+    }
+    
+    /* ==================== 首页 ==================== */
+    #home-page {
+      padding: var(--spacing-lg);
+    }
+    
+    .home-days {
+      text-align: center;
+      padding: var(--spacing-xl);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .days-number {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-family: var(--font-rounded);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+    
+    .days-label {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-top: var(--spacing-sm);
+    }
+    
+    .tree-section {
+      text-align: center;
+      padding: var(--spacing-xl);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .tree-emoji {
+      font-size: 64px;
+      display: inline-block;
+      animation: treeBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes treeBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    .tree-days {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: var(--spacing-md);
+    }
+    
+    /* 打卡按钮区域 */
+    .checkin-section {
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .checkin-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+    
+    .checkin-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      justify-content: center;
+    }
+    
+    .checkin-button {
+      flex: 1;
+      min-width: 140px;
+      max-width: 180px;
+      padding: var(--spacing-lg);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-color);
+      background: var(--input-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-family: var(--font-family);
+    }
+    
+    .checkin-button:hover {
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .checkin-button.done {
+      border-color: var(--checkin-done);
+      background: rgba(144, 238, 144, 0.1);
+      color: #4CAF50;
+      cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    
+    .checkin-button.done:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .checkin-emoji {
+      font-size: 32px;
+    }
+    
+    /* 今日情话 */
+    .love-quote {
+      padding: var(--spacing-xl);
+      background: var(--love-quote-bg);
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .love-quote-text {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-color);
+      line-height: 1.6;
+      font-family: var(--font-rounded);
+    }
+    
+    .love-quote-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: var(--spacing-md);
+    }
+    
+    /* ==================== 动态墙 ==================== */
+    #posts-page {
+      padding: var(--spacing-lg);
+    }
+    
+    .posts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .posts-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-color);
+      font-family: var(--font-rounded);
+    }
+    
+    .new-post-button {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--button-text);
+      background: var(--button-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .new-post-button:hover {
+      background: var(--button-hover);
+      transform: translateY(-1px);
+    }
+    
+    .posts-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+    }
+    
+    .post-card {
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      animation: fadeIn var(--transition-medium);
+    }
+    
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .post-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .post-author {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    
+    .post-time {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    
+    .post-content {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .post-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .post-image {
+      width: 100%;
+      max-width: 300px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+    }
+    
+    .post-image:hover {
+      transform: scale(1.05);
+    }
+    
+    .post-checkin-tag {
+      display: inline-block;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--primary-color);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+    
+    .delete-post-btn {
+      margin-left: auto;
+      padding: 4px 12px;
+      border: 1px solid #E74C3C;
+      border-radius: var(--border-radius-sm);
+      background: transparent;
+      color: #E74C3C;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .delete-post-btn:hover {
+      background: rgba(231, 76, 60, 0.1);
+    }
+    
+    .load-more-button {
+      width: 100%;
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .load-more-button:hover {
+      border-color: var(--primary-color);
+      color: var(--text-color);
+    }
+    
+    /* 发布动态模态框 */
+    .post-modal textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-family: var(--font-family);
+      resize: vertical;
+      background: var(--input-bg);
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .post-modal textarea:focus {
+      outline: none;
+      border-color: var(--input-focus);
+    }
+    
+    .image-upload-options {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .upload-option {
+      flex: 1;
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      background: var(--input-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+    }
+    
+    .upload-option:hover {
+      border-color: var(--primary-color);
+    }
+    
+    .upload-option input {
+      display: none;
+    }
+    
+    .upload-preview {
+      margin-top: var(--spacing-sm);
+    }
+    
+    .upload-preview img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: var(--border-radius-sm);
+    }
+    
+    /* ==================== 我们页面 ==================== */
+    #us-page {
+      padding: var(--spacing-lg);
+    }
+    
+    .couple-profiles {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .profile-card {
+      flex: 1;
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      text-align: center;
+    }
+    
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      margin: 0 auto var(--spacing-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      overflow: hidden;
+    }
+    
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .profile-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .profile-declaration {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    /* 邀请码 */
+    .invite-code-section {
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+    
+    .invite-code-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .invite-code-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-family: var(--font-rounded);
+      margin-bottom: var(--spacing-md);
+      letter-spacing: 2px;
+    }
+    
+    .copy-button {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: 2px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color);
+      background: transparent;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .copy-button:hover {
+      background: var(--primary-color);
+      color: var(--button-text);
+    }
+    
+    /* 纪念日 */
+    .anniversary-section {
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .anniversary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .anniversary-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    
+    .add-anniversary {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--button-text);
+      background: var(--button-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .anniversary-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    
+    .anniversary-item {
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .anniversary-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+    
+    .anniversary-date {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    
+    .anniversary-countdown {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+    
+    .anniversary-right {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+    
+    .delete-anniversary-btn {
+      padding: 4px 10px;
+      border: 1px solid #E74C3C;
+      border-radius: var(--border-radius-sm);
+      background: transparent;
+      color: #E74C3C;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .delete-anniversary-btn:hover {
+      background: rgba(231, 76, 60, 0.1);
+    }
+    
+    /* 主题切换 */
+    .theme-section {
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .theme-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .theme-options {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .theme-option {
+      flex: 1;
+      padding: var(--spacing-lg);
+      border: 3px solid var(--input-border);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+    }
+    
+    .theme-option.active {
+      border-color: var(--primary-color);
+      background: rgba(var(--shadow-color), 0.1);
+    }
+    
+    .theme-preview {
+      height: 60px;
+      border-radius: var(--border-radius-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .theme-morning {
+      background: linear-gradient(135deg, #FDF6F0 0%, #FDE2D3 100%);
+    }
+    
+    .theme-forest {
+      background: linear-gradient(135deg, #F0F5EC 0%, #D4C5A9 100%);
+    }
+    
+    .theme-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+    
+    .background-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+    }
+    
+    .background-buttons label,
+    .background-buttons button {
+      flex: 1;
+      padding: var(--spacing-md);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--input-bg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+    }
+    
+    .background-buttons label:hover,
+    .background-buttons button:hover {
+      border-color: var(--primary-color);
+      color: var(--text-color);
+    }
+    
+    .background-buttons input {
+      display: none;
+    }
+    
+    /* 起始日设置 */
+    .start-date-section {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+    
+    .start-date-section input {
+      flex: 1;
+    }
+    
+    /* ==================== 我的页面 ==================== */
+    #profile-page {
+      padding: var(--spacing-lg);
+    }
+    
+    .my-profile {
+      padding: var(--spacing-xl);
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--card-shadow);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+    
+    .my-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      margin: 0 auto var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      overflow: hidden;
+    }
+    
+    .my-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .my-email {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .my-nickname {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .edit-profile-button {
+      width: 100%;
+      padding: var(--spacing-md);
+      border: 2px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-color);
+      background: transparent;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .edit-profile-button:hover {
+      background: var(--primary-color);
+      color: var(--button-text);
+    }
+    
+    .logout-button {
+      width: 100%;
+      padding: var(--spacing-lg);
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .logout-button:hover {
+      border-color: #E74C3C;
+      color: #E74C3C;
+      background: rgba(231, 76, 60, 0.05);
+    }
+    
+    /* ==================== 底部Tab导航 ==================== */
+    .bottom-tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: var(--card-bg);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      border-top: 1px solid var(--input-border);
+    }
+    
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      color: var(--text-secondary);
+    }
+    
+    .tab-item.active {
+      color: var(--primary-dark);
+    }
+    
+    .tab-emoji {
+      font-size: 24px;
+      margin-bottom: 2px;
+    }
+    
+    .tab-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    /* ==================== 版本信息 ==================== */
+    .version-footer {
+      text-align: center;
+      padding: var(--spacing-md);
+      font-size: 12px;
+      color: var(--text-secondary);
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+      background: var(--bg-color);
+      z-index: 99;
+    }
+    
+    /* ==================== Toast 提示 ==================== */
+    .toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: var(--spacing-lg);
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      font-size: 16px;
+      color: var(--text-color);
+      z-index: 2000;
+      display: none;
+      animation: toastFadeIn 0.3s;
+      max-width: 80%;
+      text-align: center;
+    }
+    
+    .toast.show {
+      display: block;
+    }
+    
+    @keyframes toastFadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+    }
+    
+    /* ==================== 版本更新弹窗 ==================== */
+    .version-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 3000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .version-modal.show {
+      display: flex;
+      animation: fadeIn var(--transition-fast);
+    }
+    
+    .version-modal-content {
+      width: 90%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-xl);
+      text-align: center;
+      animation: slideUp var(--transition-medium);
+    }
+    
+    .version-modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: var(--spacing-md);
+      font-family: var(--font-rounded);
+    }
+    
+    .version-modal-message {
+      font-size: 16px;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-xl);
+      line-height: 1.6;
+    }
+    
+    .version-modal-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+    }
+    
+    .version-modal-button {
+      flex: 1;
+      padding: var(--spacing-md);
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .version-modal-button.primary {
+      background: var(--button-bg);
+      color: var(--button-text);
+    }
+    
+    .version-modal-button.secondary {
+      background: transparent;
+      border: 2px solid var(--input-border);
+      color: var(--text-secondary);
+    }
+    
+    .version-modal-button:hover {
+      transform: translateY(-1px);
+    }
+    
+    /* ==================== 图片 Lightbox ==================== */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 5000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      animation: fadeIn var(--transition-fast);
+    }
+    
+    .lightbox-overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: var(--border-radius);
+    }
+    
+    /* ==================== 响应式设计 ==================== */
+    @media (min-width: 768px) {
+      body {
+        max-width: 600px;
+        margin: 0 auto;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+      
+      .bottom-tabs {
+        max-width: 600px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      
+      .version-footer {
+        max-width: 600px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+    
+    /* ==================== 空状态 ==================== */
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-secondary);
+    }
+    
+    .empty-emoji {
+      font-size: 64px;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+    
+    .empty-text {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
-  <p>恋爱小屋 v0.1</p>
+  <!-- ==================== 登录/注册页 ==================== -->
+  <div id="auth-page" class="page active">
+    <div class="auth-container">
+      <div class="auth-logo">
+        <h1>恋爱小屋</h1>
+        <p>记录每一刻的温馨时光</p>
+      </div>
+      
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">登录</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">注册</button>
+      </div>
+      
+      <!-- 登录表单 -->
+      <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <input type="email" class="form-input" id="login-email" placeholder="请输入邮箱" required>
+          <div class="form-error" id="login-email-error"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" class="form-input" id="login-password" placeholder="请输入密码（至少6位）" required minlength="6">
+          <div class="form-error" id="login-password-error"></div>
+        </div>
+        <button type="submit" class="auth-button">登录</button>
+        <div class="forgot-password-link">
+          <a onclick="showResetPasswordModal()">忘记密码？</a>
+        </div>
+      </form>
+      
+      <!-- 注册表单 -->
+      <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <input type="email" class="form-input" id="register-email" placeholder="请输入邮箱" required>
+          <div class="form-error" id="register-email-error"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">昵称</label>
+          <input type="text" class="form-input" id="register-nickname" placeholder="请输入昵称">
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" class="form-input" id="register-password" placeholder="请输入密码（至少6位）" required minlength="6">
+          <div class="form-error" id="register-password-error"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">确认密码</label>
+          <input type="password" class="form-input" id="register-confirm-password" placeholder="请再次输入密码" required minlength="6">
+          <div class="form-error" id="register-confirm-password-error"></div>
+        </div>
+        <button type="submit" class="auth-button">注册</button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- ==================== 房间引导页 ==================== -->
+  <div id="room-guide-page" class="page">
+    <div class="room-guide-container">
+      <h1 class="room-guide-title">开始你的恋爱之旅</h1>
+      <p class="room-guide-desc">创建一个专属的情侣房间，或加入伴侣已创建的房间，开始记录你们的温馨时光</p>
+      
+      <div class="room-guide-buttons">
+        <button class="guide-button" onclick="createRoom()">
+          <span>🏠</span>
+          <span>创建房间</span>
+        </button>
+        <button class="guide-button join" onclick="showJoinRoomModal()">
+          <span>🔗</span>
+          <span>加入房间</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 加入房间模态框 -->
+    <div id="join-room-modal" class="modal">
+      <div class="modal-content">
+        <h2 class="modal-title">输入邀请码</h2>
+        <div class="form-group">
+          <input type="text" class="form-input" id="invite-code-input" placeholder="请输入6位邀请码" maxlength="6" style="text-transform: uppercase; letter-spacing: 2px;">
+          <div class="form-error" id="invite-code-error"></div>
+        </div>
+        <button class="auth-button" onclick="joinRoom()">加入</button>
+        <button class="modal-close" onclick="hideJoinRoomModal()">取消</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ==================== 主应用 ==================== -->
+  <div id="main-app" class="main-app">
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <!-- 首页 -->
+      <div id="home-page" class="page active">
+        <div class="home-days">
+          <div class="days-number">
+            <span>💖</span>
+            <span id="days-count">0</span>
+          </div>
+          <div class="days-label">在一起的第 <span id="days-label-count">0</span> 天</div>
+        </div>
+        
+        <div class="tree-section">
+          <div class="tree-emoji" id="tree-emoji">🌱</div>
+          <div class="tree-days">连续打卡 <span id="checkin-streak">0</span> 天</div>
+        </div>
+        
+        <div class="checkin-section">
+          <h3 class="checkin-title">今日打卡</h3>
+          <div class="checkin-buttons">
+            <button class="checkin-button" data-tag="hug" onclick="handleCheckin('hug')">
+              <span class="checkin-emoji">💕</span>
+              <span>拥抱了</span>
+            </button>
+            <button class="checkin-button" data-tag="eat" onclick="handleCheckin('eat')">
+              <span class="checkin-emoji">🍜</span>
+              <span>一起吃饭</span>
+            </button>
+            <button class="checkin-button" data-tag="movie" onclick="handleCheckin('movie')">
+              <span class="checkin-emoji">🎬</span>
+              <span>看了电影</span>
+            </button>
+            <button class="checkin-button" data-tag="place" onclick="handleCheckin('place')">
+              <span class="checkin-emoji">🌅</span>
+              <span>去了新地方</span>
+            </button>
+            <button class="checkin-button" data-tag="gift" onclick="handleCheckin('gift')">
+              <span class="checkin-emoji">🎁</span>
+              <span>送了礼物</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="love-quote">
+          <div class="love-quote-text" id="love-quote-text"></div>
+          <div class="love-quote-label">今日情话</div>
+        </div>
+      </div>
+      
+      <!-- 动态墙 -->
+      <div id="posts-page" class="page">
+        <div class="posts-header">
+          <h2 class="posts-title">动态墙</h2>
+          <button class="new-post-button" onclick="showNewPostModal()">发布动态</button>
+        </div>
+        
+        <div class="posts-list" id="posts-list">
+          <!-- 动态列表将动态生成 -->
+        </div>
+      </div>
+      
+      <!-- 我们页面 -->
+      <div id="us-page" class="page">
+        <div class="couple-profiles" id="couple-profiles">
+          <!-- 情侣资料卡将动态生成 -->
+        </div>
+        
+        <div class="invite-code-section">
+          <h3 class="invite-code-title">房间邀请码</h3>
+          <div class="invite-code-value" id="invite-code-display">------</div>
+          <button class="copy-button" onclick="copyInviteCode()">复制邀请码</button>
+        </div>
+        
+        <div class="anniversary-section">
+          <div class="anniversary-header">
+            <h3 class="anniversary-title">纪念日</h3>
+            <button class="add-anniversary" onclick="showAddAnniversaryModal()">添加</button>
+          </div>
+          <div class="anniversary-list" id="anniversary-list">
+            <!-- 纪念日列表将动态生成 -->
+          </div>
+        </div>
+        
+        <div class="theme-section">
+          <h3 class="theme-title">恋爱起始日</h3>
+          <div class="start-date-section">
+            <input type="date" class="form-input" id="start-date-input">
+            <button class="copy-button" onclick="saveStartDate()">保存</button>
+          </div>
+        </div>
+        
+        <div class="theme-section">
+          <h3 class="theme-title">主题切换</h3>
+          <div class="theme-options">
+            <div class="theme-option active" data-theme="morning" onclick="switchTheme('morning')">
+              <div class="theme-preview theme-morning"></div>
+              <div class="theme-name">晨光</div>
+            </div>
+            <div class="theme-option" data-theme="forest" onclick="switchTheme('forest')">
+              <div class="theme-preview theme-forest"></div>
+              <div class="theme-name">森林</div>
+            </div>
+          </div>
+          <div class="background-buttons">
+            <label>
+              上传背景图
+              <input type="file" id="background-input" accept="image/*" onchange="uploadBackgroundImage(event)">
+            </label>
+            <button onclick="clearBackgroundImage()">清除背景图</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 我的页面 -->
+      <div id="profile-page" class="page">
+        <div class="my-profile">
+          <div class="my-avatar" id="my-avatar">👤</div>
+          <div class="my-email" id="my-email"></div>
+          <div class="my-nickname" id="my-nickname">未设置昵称</div>
+          <button class="edit-profile-button" onclick="showEditProfileModal()">编辑资料</button>
+        </div>
+        
+        <button class="logout-button" onclick="handleLogout()">退出登录</button>
+      </div>
+    </div>
+    
+    <!-- 底部Tab导航 -->
+    <div class="bottom-tabs">
+      <div class="tab-item active" data-page="home" onclick="switchTabPage('home')">
+        <div class="tab-emoji">🏠</div>
+        <div class="tab-label">首页</div>
+      </div>
+      <div class="tab-item" data-page="posts" onclick="switchTabPage('posts')">
+        <div class="tab-emoji">💬</div>
+        <div class="tab-label">动态</div>
+      </div>
+      <div class="tab-item" data-page="us" onclick="switchTabPage('us')">
+        <div class="tab-emoji">❤️</div>
+        <div class="tab-label">我们</div>
+      </div>
+      <div class="tab-item" data-page="profile" onclick="switchTabPage('profile')">
+        <div class="tab-emoji">👤</div>
+        <div class="tab-label">我的</div>
+      </div>
+    </div>
+    
+    <!-- 版本信息 -->
+    <div class="version-footer">v<span id="version-number">0.1</span></div>
+  </div>
+  
+  <!-- ==================== 发布动态模态框 ==================== -->
+  <div id="new-post-modal" class="modal">
+    <div class="modal-content post-modal">
+      <h2 class="modal-title">发布动态</h2>
+      <textarea id="post-content" placeholder="写下你们的故事..."></textarea>
+      <div class="image-upload-options">
+        <div class="upload-option" onclick="document.getElementById('image-url-input').focus()">
+          <div>粘贴图片链接</div>
+          <input type="text" id="image-url-input" class="form-input" placeholder="https://..." style="margin-top: 8px;">
+        </div>
+        <div class="upload-option">
+          <label>本地上传</label>
+          <input type="file" id="image-file-input" accept="image/*" onchange="handleImageUpload(event)">
+          <div class="upload-preview" id="image-upload-preview"></div>
+        </div>
+      </div>
+      <button class="auth-button" onclick="submitPost(this)">发布</button>
+      <button class="modal-close" onclick="hideNewPostModal()">取消</button>
+    </div>
+  </div>
+  
+  <!-- ==================== 添加纪念日模态框 ==================== -->
+  <div id="add-anniversary-modal" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">添加纪念日</h2>
+      <div class="form-group">
+        <label class="form-label">名称</label>
+        <input type="text" class="form-input" id="anniversary-name" placeholder="例如：我们的纪念日">
+      </div>
+      <div class="form-group">
+        <label class="form-label">日期</label>
+        <input type="date" class="form-input" id="anniversary-date">
+      </div>
+      <button class="auth-button" onclick="addAnniversary()">添加</button>
+      <button class="modal-close" onclick="hideAddAnniversaryModal()">取消</button>
+    </div>
+  </div>
+  
+  <!-- ==================== 编辑资料模态框 ==================== -->
+  <div id="edit-profile-modal" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">编辑资料</h2>
+      <div class="form-group">
+        <label class="form-label">昵称</label>
+        <input type="text" class="form-input" id="edit-nickname" placeholder="请输入昵称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">恋爱宣言</label>
+        <textarea class="form-input" id="edit-declaration" placeholder="请输入恋爱宣言" style="min-height: 80px; resize: vertical;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">头像（本地上传）</label>
+        <input type="file" id="edit-avatar-input" accept="image/*" onchange="handleAvatarUpload(event)">
+        <div class="upload-preview" id="edit-avatar-preview" style="margin-top: 8px;"></div>
+      </div>
+      <button class="auth-button" onclick="submitProfileEdit(this)">保存</button>
+      <button class="modal-close" onclick="hideEditProfileModal()">取消</button>
+    </div>
+  </div>
+  
+  <!-- ==================== 重置密码模态框 ==================== -->
+  <div id="reset-password-modal" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">重置密码</h2>
+      <div class="form-group">
+        <label class="form-label">邮箱</label>
+        <input type="email" class="form-input" id="reset-email" placeholder="请输入注册邮箱">
+      </div>
+      <button class="auth-button" onclick="handleResetPassword(this)">发送重置邮件</button>
+      <button class="modal-close" onclick="hideResetPasswordModal()">取消</button>
+    </div>
+  </div>
+  
+  <!-- ==================== Toast 提示 ==================== -->
+  <div id="toast" class="toast"></div>
+  
+  <!-- ==================== 版本更新弹窗 ==================== -->
+  <div id="version-modal" class="version-modal">
+    <div class="version-modal-content">
+      <h2 class="version-modal-title">🎉 新版本上线</h2>
+      <div class="version-modal-message">新版本 <span id="new-version-number"></span> 已上线，快来看看新功能吧！</div>
+      <div class="version-modal-buttons">
+        <button class="version-modal-button primary" onclick="dismissVersionNotice(1)">1天内不再提醒</button>
+        <button class="version-modal-button secondary" onclick="dismissVersionNotice(7)">7天内不再提醒</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ==================== JavaScript ==================== -->
+  <script>
+    // ==================== 配置信息 ==================== //
+    const SUPABASE_URL = 'https://afkkzycjnefxswrcchff.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_swfz7XdEZHYZFZSWijfNPW_6DcnF5uM';
+    const GITHUB_REPO = 'CloudD67/lianai-xiaowu';
+    const USE_MOCK = true; // Mock模式，使用localStorage模拟后端
+
+    // ==================== Mock Supabase Client (localStorage后端) ==================== //
+    function createMockSupabase() {
+      const DB_KEY = 'mock_supabase_db';
+      const AUTH_KEY = 'mock_supabase_auth';
+      function loadDB() {
+        try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; } catch(e) { return {}; }
+      }
+      function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+      function loadAuth() {
+        try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch(e) { return null; }
+      }
+      function saveAuth(auth) {
+        if (auth) localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+        else localStorage.removeItem(AUTH_KEY);
+      }
+      function uuid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = Math.random()*16|0; const v = c==='x'?r:(r&0x3|0x8);
+          return v.toString(16);
+        });
+      }
+      function now() { return new Date().toISOString(); }
+      function getTable(db, name) {
+        if (!db[name]) db[name] = [];
+        return db[name];
+      }
+
+      const authListeners = [];
+      let currentSession = loadAuth();
+
+      function notifyChange(event, session) {
+        setTimeout(() => authListeners.forEach(cb => { try { cb(event, session); } catch(e){ console.error(e);} }), 0);
+      }
+
+      // Resolve foreign key joins: profiles!xxx(col1,col2) -> attach profiles object
+      function resolveJoins(rows, tableName, db) {
+        const profiles = getTable(db, 'profiles');
+        return rows.map(row => {
+          const r = { ...row };
+          if (r.user_id) {
+            const p = profiles.find(pr => pr.id === r.user_id);
+            if (p) {
+              r.profiles = { nickname: p.nickname || p.email?.split('@')[0] || '匿名用户', avatar: p.avatar || '' };
+            } else {
+              r.profiles = { nickname: '匿名用户', avatar: '' };
+            }
+          }
+          return r;
+        });
+      }
+
+      // Query builder for select
+      function createQuery(tableName, opts) {
+        let filters = [];
+        let sortCol = null, sortAsc = true;
+        let limitN = null, rangeFrom = null, rangeTo = null;
+        let singleMode = false, maybeSingleMode = false;
+        let isCount = opts?.count === 'exact' && opts?.head === true;
+
+        function applyFilters(rows) {
+          return rows.filter(row => {
+            return filters.every(f => {
+              const val = row[f.col];
+              if (f.op === 'eq') return val === f.val;
+              if (f.op === 'neq') return val !== f.val;
+              if (f.op === 'in') return Array.isArray(f.val) && f.val.includes(val);
+              if (f.op === 'gt') return val > f.val;
+              if (f.op === 'lt') return val < f.val;
+              if (f.op === 'gte') return val >= f.val;
+              if (f.op === 'lte') return val <= f.val;
+              return true;
+            });
+          });
+        }
+        function applySort(rows) {
+          if (!sortCol) return rows;
+          return [...rows].sort((a,b) => {
+            const va = a[sortCol], vb = b[sortCol];
+            if (va < vb) return sortAsc ? -1 : 1;
+            if (va > vb) return sortAsc ? 1 : -1;
+            return 0;
+          });
+        }
+        function applyPagination(rows) {
+          let r = rows;
+          if (rangeFrom !== null && rangeTo !== null) r = r.slice(rangeFrom, rangeTo + 1);
+          if (limitN !== null) r = r.slice(0, limitN);
+          return r;
+        }
+        async function execute() {
+          await new Promise(r => setTimeout(r, 80 + Math.random()*150));
+          const db = loadDB();
+          let rows = applyFilters(getTable(db, tableName));
+          rows = applySort(rows);
+          const countAll = rows.length;
+          rows = applyPagination(rows);
+          // Resolve foreign key joins for posts/checkins
+          const resolved = resolveJoins(rows, tableName, db);
+          if (isCount) {
+            return { count: countAll, data: null, error: null };
+          }
+          if (singleMode) {
+            if (resolved.length === 0) return { data: null, error: { message: 'No rows found', code: 'PGRST116' } };
+            if (resolved.length > 1) return { data: null, error: { message: 'Multiple rows found', code: 'PGRST116' } };
+            return { data: resolved[0], error: null };
+          }
+          if (maybeSingleMode) {
+            return { data: resolved[0] || null, error: null };
+          }
+          return { data: resolved, error: null };
+        }
+
+        const query = {
+          select(cols, selectOpts) {
+            if (selectOpts?.count === 'exact' && selectOpts?.head) {
+              isCount = true;
+            }
+            return this;
+          },
+          eq(col, val) { filters.push({op:'eq',col,val}); return this; },
+          neq(col, val) { filters.push({op:'neq',col,val}); return this; },
+          in(col, vals) { filters.push({op:'in',col,val:vals}); return this; },
+          gt(col, val) { filters.push({op:'gt',col,val}); return this; },
+          lt(col, val) { filters.push({op:'lt',col,val}); return this; },
+          gte(col, val) { filters.push({op:'gte',col,val}); return this; },
+          lte(col, val) { filters.push({op:'lte',col,val}); return this; },
+          order(col, opts) { sortCol = col; sortAsc = opts?.ascending !== false; return this; },
+          limit(n) { limitN = n; return this; },
+          range(from, to) { rangeFrom = from; rangeTo = to; return this; },
+          single() { singleMode = true; return this; },
+          maybeSingle() { maybeSingleMode = true; return this; },
+          then(resolve, reject) { return execute().then(resolve, reject); }
+        };
+        return query;
+      }
+
+      // Mutation builder for update/delete
+      function createMutation(tableName, mutationType, updates) {
+        let filters = [];
+        const mut = {
+          eq(col, val) { filters.push({op:'eq',col,val}); return this; },
+          neq(col, val) { filters.push({op:'neq',col,val}); return this; },
+          async then(resolve, reject) {
+            await new Promise(r => setTimeout(r, 80 + Math.random()*120));
+            try {
+              const db = loadDB();
+              const table = getTable(db, tableName);
+              const match = row => filters.every(f => {
+                if (f.op === 'neq') return row[f.col] !== f.val;
+                return row[f.col] === f.val;
+              });
+              if (mutationType === 'update') {
+                const updated = [];
+                for (const row of table) {
+                  if (match(row)) {
+                    Object.assign(row, updates, { updated_at: now() });
+                    updated.push(row);
+                  }
+                }
+                saveDB(db);
+                resolve({ data: updated, error: null });
+              } else if (mutationType === 'delete') {
+                const remaining = table.filter(row => !match(row));
+                const deleted = table.length - remaining.length;
+                db[tableName] = remaining;
+                saveDB(db);
+                resolve({ data: null, error: null, count: deleted });
+              }
+            } catch(e) {
+              reject(e);
+            }
+          }
+        };
+        return mut;
+      }
+
+      // Insert result builder - supports both direct await and chained .select().single()
+      function createInsertBuilder(tableName, rows, insertOpts) {
+        const toInsert = Array.isArray(rows) ? rows : [rows];
+        let executed = false;
+        let resultData = null;
+        let resultError = null;
+        let chainedSelect = false;
+        let chainedSingle = false;
+        let chainedMaybeSingle = false;
+
+        function execute() {
+          if (executed) return Promise.resolve({ data: resultData, error: resultError });
+          return new Promise(resolve => {
+            setTimeout(() => {
+              const db = loadDB();
+              const table = getTable(db, tableName);
+              const inserted = [];
+              let insertError = null;
+              for (const row of toInsert) {
+                const newRow = { id: uuid(), created_at: now(), ...row };
+                if (tableName === 'rooms' && newRow.invite_code) {
+                  if (table.find(r => r.invite_code === newRow.invite_code)) {
+                    insertError = { code: '23505', message: 'duplicate key value' };
+                    break;
+                  }
+                }
+                table.push(newRow);
+                inserted.push(newRow);
+              }
+              if (insertError) {
+                resultData = null;
+                resultError = insertError;
+              } else {
+                saveDB(db);
+                resultData = inserted;
+                resultError = null;
+              }
+              executed = true;
+              if (chainedSingle) {
+                resolve({ data: inserted[0] || null, error: insertError || (inserted.length === 0 ? { message: 'No rows', code: 'PGRST116' } : null) });
+              } else if (chainedMaybeSingle) {
+                resolve({ data: inserted[0] || null, error: insertError });
+              } else {
+                resolve({ data: inserted, error: insertError });
+              }
+            }, 120 + Math.random()*180);
+          });
+        }
+
+        const chain = {
+          select(cols) {
+            chainedSelect = true;
+            return {
+              single() {
+                chainedSingle = true;
+                return { then: (resolve, reject) => execute().then(resolve, reject) };
+              },
+              maybeSingle() {
+                chainedMaybeSingle = true;
+                return { then: (resolve, reject) => execute().then(resolve, reject) };
+              },
+              then: (resolve, reject) => execute().then(resolve, reject)
+            };
+          }
+        };
+        chain.then = (resolve, reject) => execute().then(resolve, reject);
+        return chain;
+      }
+
+      const mockClient = {
+        auth: {
+          async getSession() {
+            await new Promise(r => setTimeout(r, 30));
+            return { data: { session: currentSession }, error: null };
+          },
+          async signInWithPassword({ email, password }) {
+            await new Promise(r => setTimeout(r, 200));
+            const db = loadDB();
+            const authUsers = getTable(db, '_auth_users');
+            const authUser = authUsers.find(u => u.email === email);
+            if (!authUser) return { data: { user: null, session: null }, error: { message: '邮箱或密码错误' } };
+              if (authUser._password !== password) return { data: { user: null, session: null }, error: { message: '邮箱或密码错误' } };
+            // 查找对应的profile（如果存在）
+            const profiles = getTable(db, 'profiles');
+            const profile = profiles.find(p => p.id === authUser.id);
+            const session = {
+              access_token: 'mock_token_' + uuid(),
+              token_type: 'bearer',
+              expires_in: 3600,
+              expires_at: Math.floor(Date.now()/1000) + 3600,
+              refresh_token: 'mock_refresh_' + uuid(),
+              user: { id: authUser.id, email: authUser.email, created_at: authUser.created_at }
+            };
+            currentSession = session;
+            saveAuth(session);
+            notifyChange('SIGNED_IN', session);
+            return { data: { user: session.user, session }, error: null };
+          },
+          async signUp({ email, password }) {
+            await new Promise(r => setTimeout(r, 300));
+            const db = loadDB();
+            let authUsers = getTable(db, '_auth_users');
+            if (authUsers.find(u => u.email === email)) {
+              return { data: { user: null, session: null }, error: { message: '该邮箱已被注册' } };
+            }
+            const userId = uuid();
+            // 注意：signUp只创建auth用户，不自动创建profiles表记录（由应用代码处理）
+            // 但在内存中保存密码以便后续signIn验证
+            const authUser = {
+              id: userId, email, _password: password,
+              created_at: now()
+            };
+            authUsers.push(authUser);
+            saveDB(db);
+            const session = {
+              access_token: 'mock_token_' + uuid(),
+              token_type: 'bearer',
+              expires_in: 3600,
+              expires_at: Math.floor(Date.now()/1000) + 3600,
+              refresh_token: 'mock_refresh_' + uuid(),
+              user: { id: userId, email, created_at: authUser.created_at }
+            };
+            currentSession = session;
+            saveAuth(session);
+            notifyChange('SIGNED_IN', session);
+            return { data: { user: session.user, session }, error: null };
+          },
+          async signOut() {
+            await new Promise(r => setTimeout(r, 100));
+            currentSession = null;
+            saveAuth(null);
+            notifyChange('SIGNED_OUT', null);
+            return { error: null };
+          },
+          async resetPasswordForEmail(email) {
+            await new Promise(r => setTimeout(r, 200));
+            return { data: {}, error: null };
+          },
+          onAuthStateChange(callback) {
+            authListeners.push(callback);
+            if (currentSession) {
+              setTimeout(() => callback('SIGNED_IN', currentSession), 0);
+            } else {
+              setTimeout(() => callback('INITIAL_SESSION', null), 0);
+            }
+            return { data: { subscription: { id: uuid(), unsubscribe() { const i = authListeners.indexOf(callback); if(i>=0) authListeners.splice(i,1); } } } };
+          }
+        },
+        from(tableName) {
+          return {
+            select(cols, opts) {
+              return createQuery(tableName, opts).select(cols, opts);
+            },
+            insert(rows, insertOpts) {
+              return createInsertBuilder(tableName, rows, insertOpts);
+            },
+            update(updates) {
+              return createMutation(tableName, 'update', updates);
+            },
+            delete() {
+              return createMutation(tableName, 'delete', null);
+            }
+          };
+        },
+        storage: {
+          from(bucket) {
+            return {
+              async upload(path, file) { return { data: { path }, error: null }; },
+              async remove(paths) { return { data: null, error: null }; },
+              getPublicUrl(path) { return { data: { publicUrl: path } }; }
+            };
+          }
+        }
+      };
+      return mockClient;
+    }
+
+    // 初始化 Supabase 客户端
+    const supabaseClient = USE_MOCK ? createMockSupabase() : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 预填充版本公告数据
+    (function() {
+      const DB_KEY = 'mock_supabase_db';
+      let db = {};
+      try { db = JSON.parse(localStorage.getItem(DB_KEY)) || {}; } catch(e) {}
+      if (!db.version_notices || db.version_notices.length === 0) {
+        db.version_notices = [{
+          id: 'v001', version: 'v0.1', title: '🎉 恋爱小屋 v0.1 上线',
+          content: '欢迎使用恋爱小屋！这是第一个版本，包含情侣房间、动态墙、纪念日、打卡、主题切换等功能。记录你们的每一刻温馨时光吧~',
+          published_at: new Date().toISOString()
+        }];
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
+      }
+    })();
+
+    // ==================== 全局状态 ==================== //
+    let currentUser = null;
+    let currentRoom = null;
+    let currentTheme = 'morning';
+    let loadedPages = new Set();
+    let postsPollingInterval = null;
+    let currentPostsPage = 0;
+    let hasMorePosts = true;
+    const POSTS_PAGE_SIZE = 20;
+    let toastQueue = [];
+    let toastShowing = false;
+    let pendingAvatar = '';
+    
+    // 情话语录（20句）
+    const LOVE_QUOTES = [
+      "你是我最美的意外",
+      "遇见你是最幸运的事",
+      "想和你一起慢慢变老",
+      "你的笑容是我最喜欢的风景",
+      "每一天都想见到你",
+      "你是我心中的唯一",
+      "有你的日子都是好日子",
+      "你是我的小确幸",
+      "和你在一起的每一秒都珍贵",
+      "你是我生命中最美好的礼物",
+      "想牵着你的手一直走下去",
+      "你让我的世界变得完整",
+      "你是我最想珍惜的人",
+      "有你在身边，什么都变得美好",
+      "你是我心中永远的阳光",
+      "和你相遇是最美的缘分",
+      "你是我生命中最重要的人",
+      "想和你共度每一个春夏秋冬",
+      "你是我心中最美的诗",
+      "爱你是我做过最正确的决定"
+    ];
+    
+    // 打卡项映射
+    const CHECKIN_TAGS = {
+      'hug': '💕拥抱了',
+      'eat': '🍜一起吃饭',
+      'movie': '🎬看了电影',
+      'place': '🌅去了新地方',
+      'gift': '🎁送了礼物'
+    };
+    
+    // ==================== 全局错误边界 (Bug #44) ==================== //
+    window.onerror = function(message, source, lineno, colno, error) {
+      console.error('全局错误:', message, error);
+      showToast('应用出现错误，请稍后重试');
+      return false;
+    };
+    
+    // ==================== 工具函数 ==================== //
+    
+    // HTML 转义，防止 XSS (Bug #4)
+    function escapeHtml(text) {
+      if (text == null) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\//g, '&#x2F;');
+    }
+    
+    // 获取北京时间日期字符串 YYYY-MM-DD (Bug #14)
+    function getLocalDateString() {
+      return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+    }
+    
+    // 验证图片 URL 格式 (Bug #4)
+    function validateImageUrl(url) {
+      if (!url || typeof url !== 'string') return false;
+      return /^https?:\/\//i.test(url) || /^data:image\//i.test(url);
+    }
+    
+    // 渲染头像（emoji 或图片 URL）(Bug #4)
+    function renderAvatar(avatar) {
+      const safe = escapeHtml(avatar || '👤');
+      if (validateImageUrl(avatar)) {
+        return `<img src="${safe}" alt="头像">`;
+      }
+      return safe;
+    }
+    
+    // 显示错误
+    function showError(elementId, message) {
+      const errorElement = document.getElementById(elementId);
+      if (!errorElement) return;
+      errorElement.textContent = message;
+      errorElement.classList.add('show');
+      
+      setTimeout(() => {
+        errorElement.classList.remove('show');
+      }, 3000);
+    }
+    
+    // 显示 Toast 提示 - 队列模式 (Bug #25, #43)
+    function showToast(message) {
+      toastQueue.push(message);
+      if (!toastShowing) {
+        showNextToast();
+      }
+    }
+    
+    function showNextToast() {
+      if (toastQueue.length === 0) {
+        toastShowing = false;
+        return;
+      }
+      toastShowing = true;
+      const message = toastQueue.shift();
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(showNextToast, 200);
+      }, 1500);
+    }
+    
+    // 设置按钮加载状态 - 保存原始文字 (Bug #2)
+    function setButtonLoading(button, loading) {
+      if (!button) return;
+      if (loading) {
+        if (!button.getAttribute('data-original-text')) {
+          button.setAttribute('data-original-text', button.textContent);
+        }
+        button.classList.add('loading');
+        button.disabled = true;
+        button.textContent = '处理中...';
+      } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+        button.textContent = button.getAttribute('data-original-text') || '提交';
+      }
+    }
+    
+    // 验证邮箱格式
+    function validateEmail(email) {
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return regex.test(email);
+    }
+    
+    // 验证邀请码格式
+    function validateInviteCode(code) {
+      const regex = /^[A-Z0-9]{6}$/;
+      return regex.test(code);
+    }
+    
+    // 绑定模态框点击遮罩关闭 (Bug #19)
+    function bindModalClickOutside() {
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('active');
+          }
+        });
+      });
+    }
+    
+    // ==================== 初始化应用 ==================== //
+    async function initApp() {
+      try {
+        // 绑定模态框点击外部关闭
+        bindModalClickOutside();
+        
+        // 先读 localStorage 立即应用主题和背景 (Bug #9, #10)
+        const cachedTheme = localStorage.getItem('theme');
+        if (cachedTheme) {
+          applyTheme(cachedTheme);
+        }
+        const cachedBg = localStorage.getItem('backgroundImage');
+        if (cachedBg) {
+          applyBackgroundImage(cachedBg);
+        }
+        
+        // 检查用户登录状态
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session) {
+          currentUser = session.user;
+          
+          // 异步从数据库同步主题 (Bug #9)
+          loadThemeFromDB();
+          
+          // 检查用户是否在房间中
+          const roomId = await checkUserRoom(currentUser.id);
+          
+          if (roomId) {
+            // 已在房间，显示主应用
+            await loadRoomData(roomId);
+            showMainApp();
+          } else {
+            // 未在房间，显示房间引导页
+            showPage('room-guide-page');
+          }
+          
+          // 检查版本更新（仅登录后）(Bug #35)
+          checkVersionUpdate();
+          // 启动5:20情话推送
+          if (window.Notification) Notification.requestPermission();
+          start520Notification();
+        } else {
+          // 未登录，显示登录页
+          showPage('auth-page');
+        }
+        
+      } catch (error) {
+        console.error('初始化应用失败:', error);
+        showToast('应用加载失败，请刷新页面');
+      }
+    }
+    
+    // ==================== 用户认证相关 ==================== //
+    
+    // 切换登录/注册Tab
+    function switchAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.auth-tab:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+      
+      document.getElementById('login-form').classList.toggle('active', tab === 'login');
+      document.getElementById('register-form').classList.toggle('active', tab === 'register');
+    }
+    
+    // 处理登录
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      
+      // 验证输入
+      if (!validateEmail(email)) {
+        showError('login-email-error', '邮箱格式不正确');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showError('login-password-error', '密码至少需要6位');
+        return;
+      }
+      
+      try {
+        setButtonLoading(event.target.querySelector('.auth-button'), true);
+        
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        
+        if (error) throw error;
+        
+        currentUser = data.user;
+        
+        // 检查用户房间状态
+        const roomId = await checkUserRoom(currentUser.id);
+        
+        showToast('登录成功');
+        
+        if (roomId) {
+          await loadRoomData(roomId);
+          showMainApp();
+        } else {
+          showPage('room-guide-page');
+        }
+        
+      } catch (error) {
+        console.error('登录失败:', error);
+        showToast('登录失败：' + error.message);
+      } finally {
+        setButtonLoading(event.target.querySelector('.auth-button'), false);
+      }
+    }
+    
+    // 处理注册 (Bug #13 确认密码, #24 注册后验证)
+    async function handleRegister(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value;
+      const confirmPassword = document.getElementById('register-confirm-password').value;
+      const nickname = document.getElementById('register-nickname').value.trim();
+      
+      // 验证输入
+      if (!validateEmail(email)) {
+        showError('register-email-error', '邮箱格式不正确');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showError('register-password-error', '密码至少需要6位');
+        return;
+      }
+      
+      // 验证两次密码一致 (Bug #13)
+      if (password !== confirmPassword) {
+        showError('register-confirm-password-error', '两次输入的密码不一致');
+        return;
+      }
+      
+      try {
+        setButtonLoading(event.target.querySelector('.auth-button'), true);
+        
+        // 注册用户
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({ email, password });
+        
+        if (authError) throw authError;
+        
+        currentUser = authData.user;
+        
+        // 创建用户资料
+        const { error: profileError } = await supabaseClient
+          .from('profiles')
+          .insert({
+            id: currentUser.id,
+            nickname: nickname,
+            avatar: '',
+            love_declaration: '',
+            membership_level: 'free'
+          });
+        
+        if (profileError) {
+          console.error('创建用户资料失败:', profileError);
+        }
+        
+        // 检查是否需要邮箱验证 (Bug #24)
+        if (authData.session) {
+          showToast('注册成功');
+          const roomId = await checkUserRoom(currentUser.id);
+          if (roomId) {
+            await loadRoomData(roomId);
+            showMainApp();
+          } else {
+            showPage('room-guide-page');
+          }
+        } else {
+          // 需要邮箱验证
+          showToast('注册成功，请查收验证邮件后再登录');
+          showPage('auth-page');
+          switchAuthTab('login');
+        }
+        
+      } catch (error) {
+        console.error('注册失败:', error);
+        showToast('注册失败：' + error.message);
+      } finally {
+        setButtonLoading(event.target.querySelector('.auth-button'), false);
+      }
+    }
+    
+    // 处理退出登录 (Bug #26 清空表单)
+    async function handleLogout() {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
+        
+        if (error) throw error;
+        
+        // 清理 localStorage
+        localStorage.removeItem('roomId');
+        localStorage.removeItem('cachedVersion');
+        localStorage.removeItem('lastVersionSeen');
+        localStorage.removeItem('noticeDismissTime');
+        
+        // 清空所有 input 和 textarea (Bug #26)
+        document.querySelectorAll('input').forEach(input => {
+          input.value = '';
+        });
+        document.querySelectorAll('textarea').forEach(ta => {
+          ta.value = '';
+        });
+        
+        // 停止轮询
+        stopPostsPolling();
+        stop520Notification();
+        
+        // 重置状态
+        currentUser = null;
+        currentRoom = null;
+        loadedPages = new Set();
+        
+        showToast('已退出登录');
+        showPage('auth-page');
+        document.getElementById('main-app').classList.remove('active');
+        
+      } catch (error) {
+        console.error('退出登录失败:', error);
+        showToast('退出登录失败');
+      }
+    }
+    
+    // 显示重置密码模态框 (Bug #12)
+    function showResetPasswordModal() {
+      document.getElementById('reset-password-modal').classList.add('active');
+      document.getElementById('reset-email').value = '';
+    }
+    
+    // 隐藏重置密码模态框
+    function hideResetPasswordModal() {
+      document.getElementById('reset-password-modal').classList.remove('active');
+    }
+    
+    // 处理重置密码 (Bug #12)
+    async function handleResetPassword(button) {
+      const email = document.getElementById('reset-email').value.trim();
+      
+      if (!validateEmail(email)) {
+        showToast('邮箱格式不正确');
+        return;
+      }
+      
+      try {
+        setButtonLoading(button, true);
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        
+        hideResetPasswordModal();
+        showToast('重置邮件已发送，请查收');
+      } catch (error) {
+        console.error('发送重置邮件失败:', error);
+        showToast('发送失败：' + error.message);
+      } finally {
+        setButtonLoading(button, false);
+      }
+    }
+    
+    // ==================== 房间管理 ==================== //
+    
+    // 检查用户所在房间
+    async function checkUserRoom(userId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('room_members')
+          .select('room_id')
+          .eq('user_id', userId)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        
+        if (data) {
+          localStorage.setItem('roomId', data.room_id);
+          return data.room_id;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('检查房间失败:', error);
+        return null;
+      }
+    }
+    
+    // 生成随机邀请码 - 最大重试 10 次，直接插入捕获唯一约束冲突 (Bug #3, #6)
+    async function generateInviteCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const maxRetries = 10;
+      
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        // 直接插入 rooms 表，捕获唯一约束冲突 (Bug #6)
+        const { data, error } = await supabaseClient
+          .from('rooms')
+          .insert({ invite_code: code, created_by: currentUser.id })
+          .select()
+          .single();
+        
+        if (!error) {
+          return { code, room: data };
+        }
+        
+        // 23505 = 唯一约束冲突，继续重试
+        if (error.code !== '23505') {
+          throw error;
+        }
+      }
+      
+      // 超过最大重试次数 (Bug #3)
+      throw new Error('生成邀请码失败，请重试');
+    }
+    
+    // 创建房间
+    async function createRoom() {
+      try {
+        showToast('正在创建房间...');
+        
+        // generateInviteCode 直接插入并返回房间数据
+        const { code, room } = await generateInviteCode();
+        
+        // 将创建者加入房间
+        const { error: memberError } = await supabaseClient
+          .from('room_members')
+          .insert({ room_id: room.id, user_id: currentUser.id });
+        
+        if (memberError) {
+          await supabaseClient.from('rooms').delete().eq('id', room.id);
+          throw memberError;
+        }
+        
+        localStorage.setItem('roomId', room.id);
+        
+        await loadRoomData(room.id);
+        showMainApp();
+        
+        showToast('房间创建成功！邀请码：' + code);
+        
+      } catch (error) {
+        console.error('创建房间失败:', error);
+        showToast('创建房间失败：' + error.message);
+      }
+    }
+    
+    // 显示加入房间模态框
+    function showJoinRoomModal() {
+      document.getElementById('join-room-modal').classList.add('active');
+      document.getElementById('invite-code-input').value = '';
+      document.getElementById('invite-code-input').focus();
+    }
+    
+    // 隐藏加入房间模态框
+    function hideJoinRoomModal() {
+      document.getElementById('join-room-modal').classList.remove('active');
+    }
+    
+    // 加入房间 - 插入后验证人数防止竞态条件 (Bug #5)
+    async function joinRoom() {
+      const inviteCode = document.getElementById('invite-code-input').value.trim().toUpperCase();
+      
+      // 验证邀请码
+      if (!validateInviteCode(inviteCode)) {
+        showError('invite-code-error', '邀请码格式不正确（6位大写字母或数字）');
+        return;
+      }
+      
+      try {
+        showToast('正在加入房间...');
+        
+        // 查询房间
+        const { data: room, error: roomError } = await supabaseClient
+          .from('rooms')
+          .select('id, invite_code')
+          .eq('invite_code', inviteCode)
+          .single();
+        
+        if (roomError) throw new Error('邀请码无效');
+        
+        // 查询当前房间人数
+        const { count, error: countError } = await supabaseClient
+          .from('room_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('room_id', room.id);
+        
+        if (countError) throw countError;
+        
+        if (count >= 2) {
+          showToast('房间已满（最多2人）');
+          return;
+        }
+        
+        // 加入房间
+        const { error: memberError } = await supabaseClient
+          .from('room_members')
+          .insert({ room_id: room.id, user_id: currentUser.id });
+        
+        if (memberError) throw memberError;
+        
+        // 插入后再次查询人数，防止竞态条件 (Bug #5)
+        const { count: countAfter, error: countError2 } = await supabaseClient
+          .from('room_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('room_id', room.id);
+        
+        if (countError2) throw countError2;
+        
+        if (countAfter > 2) {
+          // 超员，删除刚插入的记录
+          await supabaseClient
+            .from('room_members')
+            .delete()
+            .eq('room_id', room.id)
+            .eq('user_id', currentUser.id);
+          showToast('房间已满（最多2人）');
+          return;
+        }
+        
+        localStorage.setItem('roomId', room.id);
+        
+        await loadRoomData(room.id);
+        showMainApp();
+        
+        hideJoinRoomModal();
+        showToast('成功加入房间！');
+        
+      } catch (error) {
+        console.error('加入房间失败:', error);
+        showToast('加入房间失败：' + error.message);
+      }
+    }
+    
+    // ==================== 数据加载 ==================== //
+    
+    // 加载房间数据 - 只加载首页数据，懒加载其他页面 (Bug #33)
+    async function loadRoomData(roomId) {
+      try {
+        // 获取房间信息
+        const { data: roomData, error: roomError } = await supabaseClient
+          .from('rooms')
+          .select('*')
+          .eq('id', roomId)
+          .single();
+        
+        if (roomError) throw roomError;
+        
+        currentRoom = roomData;
+        
+        // 重置懒加载状态
+        loadedPages = new Set();
+        
+        // 只加载首页数据 (Bug #33)
+        await loadHomePage();
+        
+      } catch (error) {
+        console.error('加载房间数据失败:', error);
+        showToast('数据加载失败');
+      }
+    }
+    
+    // 加载首页数据 - 优先使用 start_date (Bug #15)
+    async function loadHomePage() {
+      try {
+        // 计算在一起的天数，优先使用 start_date (Bug #15)
+        const startDateStr = currentRoom.start_date || currentRoom.created_at;
+        const startDate = new Date(startDateStr);
+        const today = new Date();
+        const days = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        
+        document.getElementById('days-count').textContent = days;
+        document.getElementById('days-label-count').textContent = days;
+        
+        // 计算连续打卡天数（房间维度）(Bug #16)
+        const streak = await calculateCheckinStreak(currentUser.id, currentRoom.id);
+        
+        document.getElementById('checkin-streak').textContent = streak;
+        
+        // 更新恋爱小树
+        updateLoveTree(streak);
+        
+        // 检查今日打卡状态
+        await checkTodayCheckinStatus();
+        
+        // 显示今日情话
+        showTodayLoveQuote();
+        
+      } catch (error) {
+        console.error('加载首页数据失败:', error);
+      }
+    }
+    
+    // 计算连续打卡天数 - 房间所有成员，按日期去重 (Bug #16)
+    async function calculateCheckinStreak(userId, roomId) {
+      try {
+        // 查询当前房间所有成员的打卡记录（不限 user_id）
+        const { data: checkins, error } = await supabaseClient
+          .from('checkins')
+          .select('checkin_date')
+          .eq('room_id', roomId)
+          .order('checkin_date', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!checkins || checkins.length === 0) return 0;
+        
+        // 按日期去重，只要房间中任一人打卡就算当天有效
+        const dateSet = new Set();
+        checkins.forEach(c => dateSet.add(c.checkin_date));
+        const dates = Array.from(dateSet).sort().reverse();
+        
+        // 检查今天是否打卡 (Bug #14)
+        const today = getLocalDateString();
+        
+        if (!dateSet.has(today)) return 0; // 今天未打卡
+        
+        // 计算连续天数
+        let streak = 1;
+        for (let i = 1; i < dates.length; i++) {
+          const prev = new Date(dates[i]);
+          const curr = new Date(dates[i-1]);
+          const diff = Math.floor((curr - prev) / (1000 * 60 * 60 * 24));
+          
+          if (diff === 1) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+        
+        return streak;
+        
+      } catch (error) {
+        console.error('计算连续打卡天数失败:', error);
+        return 0;
+      }
+    }
+    
+    // 更新恋爱小树
+    function updateLoveTree(streak) {
+      const treeEmoji = document.getElementById('tree-emoji');
+      
+      if (streak <= 0) {
+        treeEmoji.textContent = '🌱';
+      } else if (streak <= 3) {
+        treeEmoji.textContent = '🌿';
+      } else if (streak <= 7) {
+        treeEmoji.textContent = '🌳';
+      } else {
+        treeEmoji.textContent = '🌲';
+      }
+    }
+    
+    // 检查今日打卡状态 (Bug #14)
+    async function checkTodayCheckinStatus() {
+      try {
+        const today = getLocalDateString();
+        
+        const { data: todayCheckins, error } = await supabaseClient
+          .from('checkins')
+          .select('checkin_tag')
+          .eq('user_id', currentUser.id)
+          .eq('room_id', currentRoom.id)
+          .eq('checkin_date', today);
+        
+        if (error) throw error;
+        
+        // 更新打卡按钮状态
+        document.querySelectorAll('.checkin-button').forEach(button => {
+          const tag = button.getAttribute('data-tag');
+          const isDone = todayCheckins.some(c => c.checkin_tag === tag);
+          
+          button.classList.toggle('done', isDone);
+          button.disabled = isDone;
+        });
+        
+      } catch (error) {
+        console.error('检查打卡状态失败:', error);
+      }
+    }
+    
+    // 显示今日情话
+    function showTodayLoveQuote() {
+      const today = new Date();
+      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+      const index = dayOfYear % LOVE_QUOTES.length;
+      
+      document.getElementById('love-quote-text').textContent = LOVE_QUOTES[index];
+    }
+
+    // 5:20 情话推送 - 每分钟检查一次
+    let love520Timer = null;
+    let last520Date = '';
+
+    function start520Notification() {
+      stop520Notification();
+      love520Timer = setInterval(() => {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+
+        if ((hours === 5 || hours === 17) && minutes === 20 && today !== last520Date) {
+          last520Date = today;
+          const quote = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
+          const title = hours === 5 ? '早安，亲爱的' : '傍晚好，亲爱的';
+          if (window.Notification && Notification.permission === 'granted') {
+            new Notification(title, { body: quote, icon: '💕' });
+          }
+          showToast(`💌 ${title}：${quote}`);
+        }
+      }, 60000);
+    }
+
+    function stop520Notification() {
+      if (love520Timer) {
+        clearInterval(love520Timer);
+        love520Timer = null;
+      }
+    }
+    
+    // ==================== 打卡相关 ==================== //
+    
+    // 打卡 - 不重建整个列表，只插入新卡片 (Bug #23)
+    async function handleCheckin(tag) {
+      const button = document.querySelector(`.checkin-button[data-tag="${tag}"]`);
+      
+      // 检查是否已打卡
+      if (button.classList.contains('done')) {
+        showToast('今天已打卡此项');
+        return;
+      }
+      
+      try {
+        const today = getLocalDateString();
+        
+        // 检查是否已打卡该项
+        const { data: existing, error: checkError } = await supabaseClient
+          .from('checkins')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq('room_id', currentRoom.id)
+          .eq('checkin_date', today)
+          .eq('checkin_tag', tag)
+          .single();
+        
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw checkError;
+        }
+        
+        if (existing) {
+          showToast('今天已打卡此项');
+          button.classList.add('done');
+          return;
+        }
+        
+        // 创建打卡记录
+        const { error: checkinError } = await supabaseClient
+          .from('checkins')
+          .insert({
+            user_id: currentUser.id,
+            room_id: currentRoom.id,
+            checkin_date: today,
+            checkin_tag: tag
+          });
+        
+        if (checkinError) throw checkinError;
+        
+        // 创建打卡动态
+        const { data: postData, error: postError } = await supabaseClient
+          .from('posts')
+          .insert({
+            room_id: currentRoom.id,
+            user_id: currentUser.id,
+            content: CHECKIN_TAGS[tag],
+            post_type: 'checkin',
+            checkin_tag: tag
+          })
+          .select('*, profiles!posts_user_id_fkey(nickname, avatar)')
+          .single();
+        
+        if (postError) throw postError;
+        
+        // 更新打卡按钮状态
+        button.classList.add('done');
+        button.disabled = true;
+        
+        // 在列表顶部插入新卡片，不重建整个列表 (Bug #23)
+        if (postData) {
+          const postsList = document.getElementById('posts-list');
+        if (!postsList) return;
+          const emptyState = postsList.querySelector('.empty-state');
+          if (emptyState) {
+            emptyState.remove();
+          }
+          postsList.insertAdjacentHTML('afterbegin', renderPostCard(postData));
+        }
+        
+        // 只更新连续打卡天数和小树，不调用 loadPosts (Bug #23)
+        const streak = await calculateCheckinStreak(currentUser.id, currentRoom.id);
+        document.getElementById('checkin-streak').textContent = streak;
+        updateLoveTree(streak);
+        
+        showToast('打卡成功！');
+        
+      } catch (error) {
+        console.error('打卡失败:', error);
+        showToast('打卡失败');
+      }
+    }
+    
+    // ==================== 动态相关 ==================== //
+    
+    // 加载动态列表 - 分页，每页 20 条 (Bug #22)
+    async function loadPosts(reset = true) {
+      try {
+        if (reset) {
+          currentPostsPage = 0;
+          hasMorePosts = true;
+        }
+        
+        if (!hasMorePosts && !reset) return;
+        
+        const start = currentPostsPage * POSTS_PAGE_SIZE;
+        const end = start + POSTS_PAGE_SIZE - 1;
+        
+        const { data: posts, error } = await supabaseClient
+          .from('posts')
+          .select('*, profiles!posts_user_id_fkey(nickname, avatar)')
+          .eq('room_id', currentRoom.id)
+          .order('created_at', { ascending: false })
+          .range(start, end);
+        
+        if (error) throw error;
+        
+        const postsList = document.getElementById('posts-list');
+        if (!postsList) return;
+        
+        if (reset) {
+          postsList.innerHTML = '';
+        }
+        
+        // 移除已有的"加载更多"按钮
+        const loadMoreBtn = document.getElementById('load-more-posts');
+        if (loadMoreBtn) loadMoreBtn.remove();
+        
+        if ((!posts || posts.length === 0) && reset) {
+          postsList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-emoji">📝</div>
+              <div class="empty-text">还没有动态，快来发布第一条吧！</div>
+            </div>
+          `;
+          hasMorePosts = false;
+          return;
+        }
+        
+        if (!posts || posts.length === 0) {
+          hasMorePosts = false;
+          return;
+        }
+        
+        // 追加到列表尾部而非替换 (Bug #22)
+        const newHtml = posts.map(post => renderPostCard(post)).join('');
+        
+        if (reset) {
+          postsList.innerHTML = newHtml;
+        } else {
+          postsList.insertAdjacentHTML('beforeend', newHtml);
+        }
+        
+        currentPostsPage++;
+        
+        if (posts.length < POSTS_PAGE_SIZE) {
+          hasMorePosts = false;
+        } else {
+          // 添加"加载更多"按钮
+          const btn = document.createElement('button');
+          btn.id = 'load-more-posts';
+          btn.className = 'load-more-button';
+          btn.textContent = '加载更多';
+          btn.onclick = () => loadPosts(false);
+          postsList.appendChild(btn);
+        }
+        
+      } catch (error) {
+        console.error('加载动态失败:', error);
+      }
+    }
+    
+    // 渲染单条动态卡片 - 使用 escapeHtml 防 XSS (Bug #4, #38)
+    function renderPostCard(post) {
+      const avatar = renderAvatar(post.profiles?.avatar);
+      const nickname = escapeHtml(post.profiles?.nickname || '匿名用户');
+      const time = formatTime(post.created_at);
+      const content = escapeHtml(post.content || '');
+      
+      // 用 try-catch 包裹 JSON.parse (Bug #38)
+      let images = [];
+      if (post.images) {
+        try {
+          images = JSON.parse(post.images) || [];
+        } catch (e) {
+          images = [];
+        }
+      }
+      
+      // 仅自己发布的动态显示删除按钮 (Bug #8)
+      const isOwn = post.user_id === (currentUser && currentUser.id);
+      const deleteBtn = isOwn ? `<button class="delete-post-btn" onclick="deletePost('${escapeHtml(post.id)}')">删除</button>` : '';
+      
+      // 图片 URL 用正则验证格式 (Bug #4)
+      const imagesHtml = images.length > 0
+        ? `<div class="post-images">${images.map(img => {
+            const safeUrl = validateImageUrl(img) ? escapeHtml(img) : '';
+            return safeUrl ? `<img src="${safeUrl}" class="post-image" onclick="viewImage('${safeUrl}')">` : '';
+          }).join('')}</div>`
+        : '';
+      
+      return `
+        <div class="post-card" data-post-id="${escapeHtml(post.id)}">
+          <div class="post-header">
+            <div class="post-avatar">${avatar}</div>
+            <div>
+              <div class="post-author">${nickname}</div>
+              <div class="post-time">${time}</div>
+            </div>
+            ${deleteBtn}
+          </div>
+          ${post.post_type === 'checkin' ? `<div class="post-checkin-tag">${content}</div>` : `<div class="post-content">${content}</div>`}
+          ${imagesHtml}
+        </div>
+      `;
+    }
+    
+    // 删除动态 (Bug #8)
+    async function deletePost(postId) {
+      if (!confirm('确定要删除这条动态吗？')) return;
+      
+      try {
+        const { error } = await supabaseClient
+          .from('posts')
+          .delete()
+          .eq('id', postId)
+          .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        const card = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+        if (card) card.remove();
+        
+        showToast('已删除');
+      } catch (error) {
+        console.error('删除动态失败:', error);
+        showToast('删除失败');
+      }
+    }
+    
+    // 格式化时间 - 跨天显示 (Bug #34)
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diff = now - date;
+      
+      const todayStr = getLocalDateString();
+      const dateStr = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+      
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const yesterdayStr = yesterday.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+      
+      // 今天显示"X分钟前/X小时前"
+      if (dateStr === todayStr) {
+        if (diff < 60000) return '刚刚';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+        return `${Math.floor(diff / 3600000)}小时前`;
+      }
+      
+      // 昨天显示"昨天"
+      if (dateStr === yesterdayStr) {
+        return '昨天';
+      }
+      
+      // 其他显示具体日期
+      return date.toLocaleDateString('zh-CN');
+    }
+    
+    // 显示发布动态模态框
+    function showNewPostModal() {
+      document.getElementById('new-post-modal').classList.add('active');
+      document.getElementById('post-content').value = '';
+      document.getElementById('image-url-input').value = '';
+      document.getElementById('image-upload-preview').innerHTML = '';
+      document.getElementById('image-file-input').value = '';
+      document.getElementById('post-content').focus();
+    }
+    
+    // 隐藏发布动态模态框 - 清除预览 (Bug #20)
+    function hideNewPostModal() {
+      document.getElementById('new-post-modal').classList.remove('active');
+      document.getElementById('image-upload-preview').innerHTML = '';
+      document.getElementById('image-file-input').value = '';
+    }
+    
+    // 处理图片上传 - 显示预览 (Bug #20)
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      try {
+        showToast('正在处理图片...');
+        
+        // 读取文件
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        // 检查大小，超过 500KB 则压缩
+        let finalImage = base64;
+        if (base64.length > 500 * 1024) {
+          finalImage = await compressImage(base64);
+        }
+        
+        document.getElementById('image-url-input').value = finalImage;
+        
+        // 在 upload-option 内显示预览缩略图 (Bug #20)
+        document.getElementById('image-upload-preview').innerHTML = `<img src="${escapeHtml(finalImage)}" alt="预览">`;
+        
+        showToast('图片已处理');
+        
+      } catch (error) {
+        console.error('图片处理失败:', error);
+        showToast('图片处理失败');
+      }
+    }
+    
+    // 压缩图片 - 最多 3 步，不循环 (Bug #32, #37)
+    async function compressImage(base64) {
+      const img = new Image();
+      img.src = base64;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      let width = img.width;
+      let height = img.height;
+      const maxSize = 500 * 1024;
+      
+      // 步骤1: 用 quality=0.5 压缩，原尺寸
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      let compressed = canvas.toDataURL('image/jpeg', 0.5);
+      
+      // 步骤2: 如果仍超 500KB，降到 quality=0.3
+      if (compressed.length > maxSize) {
+        compressed = canvas.toDataURL('image/jpeg', 0.3);
+      }
+      
+      // 步骤3: 如果仍超，缩放尺寸到 80%
+      if (compressed.length > maxSize) {
+        width = Math.floor(width * 0.8);
+        height = Math.floor(height * 0.8);
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        compressed = canvas.toDataURL('image/jpeg', 0.3);
+      }
+      
+      return compressed;
+    }
+    
+    // 提交动态
+    async function submitPost(button) {
+      const content = document.getElementById('post-content').value.trim();
+      const imageUrl = document.getElementById('image-url-input').value.trim();
+      
+      if (!content && !imageUrl) {
+        showToast('请输入内容或上传图片');
+        return;
+      }
+      
+      try {
+        setButtonLoading(button, true);
+        showToast('正在发布...');
+        
+        const images = imageUrl ? JSON.stringify([imageUrl]) : null;
+        
+        const { error } = await supabaseClient
+          .from('posts')
+          .insert({
+            room_id: currentRoom.id,
+            user_id: currentUser.id,
+            content: content,
+            images: images,
+            post_type: 'text'
+          });
+        
+        if (error) throw error;
+        
+        hideNewPostModal();
+        
+        // 重新加载动态（重置分页）
+        if (loadedPages.has('posts')) {
+          await loadPosts(true);
+        }
+        
+        showToast('发布成功！');
+        
+      } catch (error) {
+        console.error('发布失败:', error);
+        showToast('发布失败');
+      } finally {
+        setButtonLoading(button, false);
+      }
+    }
+    
+    // 查看图片 - Lightbox 全屏查看 (Bug #21)
+    function viewImage(url) {
+      const overlay = document.createElement('div');
+      overlay.className = 'lightbox-overlay';
+      
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = '图片预览';
+      
+      overlay.appendChild(img);
+      overlay.addEventListener('click', () => {
+        if (overlay.parentNode) {
+          document.body.removeChild(overlay);
+        }
+      });
+      
+      document.body.appendChild(overlay);
+    }
+    
+    // ==================== 实时同步轮询 (Bug #17) ==================== //
+    
+    function startPostsPolling() {
+      stopPostsPolling();
+      postsPollingInterval = setInterval(async () => {
+        // 仅当在动态墙页面时刷新第一页
+        const postsPage = document.getElementById('posts-page');
+        if (postsPage && postsPage.classList.contains('active')) {
+          // 只在第一页时静默刷新，避免破坏分页
+          if (currentPostsPage <= 1) {
+            await loadPosts(true);
+          }
+        }
+      }, 10000);
+    }
+    
+    function stopPostsPolling() {
+      if (postsPollingInterval) {
+        clearInterval(postsPollingInterval);
+        postsPollingInterval = null;
+      }
+    }
+    
+    // ==================== 我们页面 ==================== //
+    
+    // 加载我们页面数据 - 单方时显示占位卡片 (Bug #31)
+    async function loadUsPage() {
+      try {
+        // 获取房间成员
+        const { data: members, error: membersError } = await supabaseClient
+          .from('room_members')
+          .select('user_id')
+          .eq('room_id', currentRoom.id);
+        
+        if (membersError) throw membersError;
+        
+        // 获取成员资料
+        const userIds = members.map(m => m.user_id);
+        const { data: profiles, error: profilesError } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .in('id', userIds);
+        
+        if (profilesError) throw profilesError;
+        
+        // 显示情侣资料卡
+        const coupleProfilesDiv = document.getElementById('couple-profiles');
+        let profilesHtml = profiles.map(profile => {
+          const avatar = renderAvatar(profile.avatar);
+          const nickname = escapeHtml(profile.nickname || '未设置昵称');
+          const declaration = escapeHtml(profile.love_declaration || '暂无恋爱宣言');
+          
+          return `
+            <div class="profile-card">
+              <div class="profile-avatar">${avatar}</div>
+              <div class="profile-name">${nickname}</div>
+              <div class="profile-declaration">${declaration}</div>
+            </div>
+          `;
+        }).join('');
+        
+        // 单方时追加占位卡片 (Bug #31)
+        if (profiles.length === 1) {
+          profilesHtml += `
+            <div class="profile-card">
+              <div class="profile-avatar">💗</div>
+              <div class="profile-name">TA 还没有加入哦</div>
+              <div class="profile-declaration">快邀请 TA 一起记录吧</div>
+            </div>
+          `;
+        }
+        
+        coupleProfilesDiv.innerHTML = profilesHtml;
+        
+        // 显示邀请码
+        document.getElementById('invite-code-display').textContent = currentRoom.invite_code;
+        
+        // 填充起始日输入框 (Bug #15)
+        const startDateInput = document.getElementById('start-date-input');
+        if (startDateInput && currentRoom.start_date) {
+          startDateInput.value = currentRoom.start_date;
+        }
+        
+        // 加载纪念日
+        await loadAnniversaries();
+        
+      } catch (error) {
+        console.error('加载我们页面失败:', error);
+      }
+    }
+    
+    // 加载纪念日列表 - 增加删除按钮 (Bug #8, #42)
+    async function loadAnniversaries() {
+      try {
+        const { data: anniversaries, error } = await supabaseClient
+          .from('anniversaries')
+          .select('*')
+          .eq('room_id', currentRoom.id)
+          .order('date', { ascending: true });
+        
+        if (error) throw error;
+        
+        const anniversaryList = document.getElementById('anniversary-list');
+        
+        if (!anniversaries || anniversaries.length === 0) {
+          anniversaryList.innerHTML = `<div class="empty-state"><div class="empty-text">还没有纪念日</div></div>`;
+          return;
+        }
+        
+        anniversaryList.innerHTML = anniversaries.map(ann => {
+          const countdown = calculateDaysRemaining(ann.date);
+          const date = new Date(ann.date).toLocaleDateString('zh-CN');
+          const name = escapeHtml(ann.name);
+          const annId = escapeHtml(ann.id);
+          
+          return `
+            <div class="anniversary-item">
+              <div>
+                <div class="anniversary-name">${name}</div>
+                <div class="anniversary-date">${date}</div>
+              </div>
+              <div class="anniversary-right">
+                <div class="anniversary-countdown">${countdown > 0 ? countdown + '天' : countdown === -1 ? '今天' : '已过期'}</div>
+                <button class="delete-anniversary-btn" onclick="deleteAnniversary('${annId}')">删除</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+      } catch (error) {
+        console.error('加载纪念日失败:', error);
+      }
+    }
+    
+    // 删除纪念日 (Bug #8)
+    async function deleteAnniversary(id) {
+      if (!confirm('确定要删除这个纪念日吗？')) return;
+      
+      try {
+        const { error } = await supabaseClient
+          .from('anniversaries')
+          .delete()
+          .eq('id', id)
+          .eq('room_id', currentRoom.id);
+        
+        if (error) throw error;
+        
+        await loadAnniversaries();
+        showToast('已删除');
+      } catch (error) {
+        console.error('删除纪念日失败:', error);
+        showToast('删除失败');
+      }
+    }
+    
+    // 计算倒计时天数 - 同一天返回 -1 表示今天 (Bug #42)
+    function calculateDaysRemaining(date) {
+      const todayStr = getLocalDateString();
+      const targetDate = new Date(date);
+      const targetStr = targetDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+      
+      // 同一天返回 -1 表示今天
+      if (targetStr === todayStr) return -1;
+      
+      const today = new Date(todayStr);
+      const target = new Date(targetStr);
+      const diff = Math.floor((target - today) / (1000 * 60 * 60 * 24));
+      return diff;
+    }
+    
+    // 保存恋爱起始日 (Bug #15)
+    async function saveStartDate() {
+      const date = document.getElementById('start-date-input').value;
+      
+      if (!date) {
+        showToast('请选择日期');
+        return;
+      }
+      
+      try {
+        const { error } = await supabaseClient
+          .from('rooms')
+          .update({ start_date: date })
+          .eq('id', currentRoom.id);
+        
+        if (error) throw error;
+        
+        currentRoom.start_date = date;
+        
+        // 更新首页天数显示
+        await loadHomePage();
+        
+        showToast('已保存');
+      } catch (error) {
+        console.error('保存起始日失败:', error);
+        showToast('保存失败');
+      }
+    }
+    
+    // 复制邀请码 - 非 HTTPS 回退 (Bug #39)
+    function copyInviteCode() {
+      if (!currentRoom || !currentRoom.invite_code) {
+        showToast('请先加入或创建房间');
+        return;
+      }
+      const code = currentRoom.invite_code;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          showToast('邀请码已复制：' + code);
+        }).catch(() => {
+          fallbackCopy(code);
+        });
+      } else {
+        fallbackCopy(code);
+      }
+    }
+    
+    // 回退复制方法 (Bug #39)
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      
+      try {
+        document.execCommand('copy');
+        showToast('邀请码已复制：' + text);
+      } catch (e) {
+        showToast('复制失败，请手动复制：' + text);
+      }
+      
+      document.body.removeChild(textarea);
+    }
+    
+    // 显示添加纪念日模态框
+    function showAddAnniversaryModal() {
+      document.getElementById('add-anniversary-modal').classList.add('active');
+      document.getElementById('anniversary-name').value = '';
+      document.getElementById('anniversary-date').value = '';
+      document.getElementById('anniversary-name').focus();
+    }
+    
+    // 隐藏添加纪念日模态框
+    function hideAddAnniversaryModal() {
+      document.getElementById('add-anniversary-modal').classList.remove('active');
+    }
+    
+    // 添加纪念日
+    async function addAnniversary() {
+      const name = document.getElementById('anniversary-name').value.trim();
+      const date = document.getElementById('anniversary-date').value;
+      
+      if (!name) {
+        showToast('请输入纪念日名称');
+        return;
+      }
+      
+      if (!date) {
+        showToast('请选择日期');
+        return;
+      }
+      
+      try {
+        showToast('正在添加...');
+        
+        const { error } = await supabaseClient
+          .from('anniversaries')
+          .insert({
+            room_id: currentRoom.id,
+            name: name,
+            date: date
+          });
+        
+        if (error) throw error;
+        
+        hideAddAnniversaryModal();
+        await loadAnniversaries();
+        
+        showToast('添加成功！');
+        
+      } catch (error) {
+        console.error('添加纪念日失败:', error);
+        showToast('添加失败');
+      }
+    }
+    
+    // ==================== 主题管理 ==================== //
+    
+    // 应用主题
+    function applyTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme === 'forest' ? 'forest' : '');
+      
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.toggle('active', option.getAttribute('data-theme') === theme);
+      });
+    }
+    
+    // 应用背景图
+    function applyBackgroundImage(base64) {
+      if (base64) {
+        document.body.style.backgroundImage = `url(${base64})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed';
+      } else {
+        document.body.style.backgroundImage = '';
+        document.body.style.backgroundSize = '';
+        document.body.style.backgroundPosition = '';
+        document.body.style.backgroundAttachment = '';
+      }
+    }
+    
+    // 从数据库加载主题 (Bug #9)
+    async function loadThemeFromDB() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('theme_preferences')
+          .select('theme_name, background_image')
+          .eq('user_id', currentUser.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        
+        if (data?.theme_name) {
+          applyTheme(data.theme_name);
+          localStorage.setItem('theme', data.theme_name);
+        }
+        
+        if (data?.background_image) {
+          applyBackgroundImage(data.background_image);
+          localStorage.setItem('backgroundImage', data.background_image);
+        }
+      } catch (error) {
+        console.error('加载主题失败:', error);
+      }
+    }
+    
+    // 主题偏好 upsert 辅助 - 先查询再 insert/update (Bug #40)
+    async function upsertThemePreference(data) {
+      const { data: existing, error: queryError } = await supabaseClient
+        .from('theme_preferences')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .single();
+      
+      if (queryError && queryError.code !== 'PGRST116') throw queryError;
+      
+      if (existing) {
+        // 存在则 update
+        const { error: updateError } = await supabaseClient
+          .from('theme_preferences')
+          .update(data)
+          .eq('user_id', currentUser.id);
+        if (updateError) throw updateError;
+      } else {
+        // 不存在则 insert
+        const { error: insertError } = await supabaseClient
+          .from('theme_preferences')
+          .insert({ user_id: currentUser.id, ...data });
+        if (insertError) throw insertError;
+      }
+    }
+    
+    // 切换主题 - 先查询是否存在 (Bug #40)
+    async function switchTheme(theme) {
+      applyTheme(theme);
+      localStorage.setItem('theme', theme);
+      
+      try {
+        await upsertThemePreference({ theme_name: theme });
+      } catch (error) {
+        console.error('切换主题失败:', error);
+      }
+      
+      showToast('主题已切换');
+    }
+    
+    // 上传背景图 - 压缩至 500KB 转 Base64 (Bug #10)
+    async function uploadBackgroundImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      try {
+        showToast('正在处理背景图...');
+        
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        // 压缩至 500KB
+        let compressed = base64;
+        if (base64.length > 500 * 1024) {
+          compressed = await compressImage(base64);
+        }
+        
+        // 应用到 body 背景
+        applyBackgroundImage(compressed);
+        localStorage.setItem('backgroundImage', compressed);
+        
+        // 存入数据库
+        await upsertThemePreference({ background_image: compressed });
+        
+        showToast('背景图已更新');
+      } catch (error) {
+        console.error('上传背景图失败:', error);
+        showToast('上传失败');
+      }
+      
+      // 清空 input 以便重复上传同一文件
+      event.target.value = '';
+    }
+    
+    // 清除背景图 (Bug #10)
+    async function clearBackgroundImage() {
+      try {
+        applyBackgroundImage(null);
+        localStorage.removeItem('backgroundImage');
+        
+        await upsertThemePreference({ background_image: null });
+        
+        showToast('已清除背景图');
+      } catch (error) {
+        console.error('清除背景图失败:', error);
+        showToast('清除失败');
+      }
+    }
+    
+    // ==================== 我的页面 ==================== //
+    
+    // 加载我的页面数据 - 改为 async (Bug #41)
+    async function loadProfilePage() {
+      try {
+        document.getElementById('my-email').textContent = currentUser.email;
+        
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('nickname, avatar, love_declaration')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        
+        document.getElementById('my-nickname').textContent = data?.nickname || '未设置昵称';
+        
+        // 更新头像显示
+        const avatarEl = document.getElementById('my-avatar');
+        if (data?.avatar && validateImageUrl(data.avatar)) {
+          avatarEl.innerHTML = `<img src="${escapeHtml(data.avatar)}" alt="头像">`;
+        } else if (data?.avatar) {
+          avatarEl.textContent = data.avatar;
+        } else {
+          avatarEl.textContent = '👤';
+        }
+      } catch (error) {
+        console.error('加载个人资料失败:', error);
+      }
+    }
+    
+    // 显示编辑资料模态框 (Bug #7)
+    async function showEditProfileModal() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('nickname, love_declaration, avatar')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+        
+        document.getElementById('edit-nickname').value = data?.nickname || '';
+        document.getElementById('edit-declaration').value = data?.love_declaration || '';
+        document.getElementById('edit-avatar-preview').innerHTML = '';
+        document.getElementById('edit-avatar-input').value = '';
+        pendingAvatar = data?.avatar || '';
+        
+        document.getElementById('edit-profile-modal').classList.add('active');
+      } catch (error) {
+        console.error('加载资料失败:', error);
+        showToast('加载资料失败');
+      }
+    }
+    
+    // 隐藏编辑资料模态框
+    function hideEditProfileModal() {
+      document.getElementById('edit-profile-modal').classList.remove('active');
+    }
+    
+    // 处理头像上传 - 复用图片压缩逻辑 (Bug #7)
+    async function handleAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        let compressed = base64;
+        if (base64.length > 500 * 1024) {
+          compressed = await compressImage(base64);
+        }
+        
+        pendingAvatar = compressed;
+        document.getElementById('edit-avatar-preview').innerHTML = `<img src="${escapeHtml(compressed)}" alt="头像预览">`;
+      } catch (error) {
+        console.error('头像处理失败:', error);
+        showToast('头像处理失败');
+      }
+    }
+    
+    // 提交资料编辑 (Bug #7)
+    async function submitProfileEdit(button) {
+      const nickname = document.getElementById('edit-nickname').value.trim();
+      const declaration = document.getElementById('edit-declaration').value.trim();
+      
+      try {
+        setButtonLoading(button, true);
+        
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({
+            nickname: nickname,
+            love_declaration: declaration,
+            avatar: pendingAvatar
+          })
+          .eq('id', currentUser.id);
+        
+        if (error) throw error;
+        
+        hideEditProfileModal();
+        
+        // 重新加载我的页面
+        await loadProfilePage();
+        
+        // 如果我们页面已加载，重新加载以更新资料卡
+        if (loadedPages.has('us')) {
+          await loadUsPage();
+        }
+        
+        showToast('资料已更新');
+      } catch (error) {
+        console.error('更新资料失败:', error);
+        showToast('更新失败');
+      } finally {
+        setButtonLoading(button, false);
+      }
+    }
+    
+    // ==================== 版本管理 ==================== //
+    
+    // 检查版本更新 - 多设备同步 (Bug #11)
+    async function checkVersionUpdate() {
+      try {
+        // 获取最新版本
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/tags`);
+        const tags = await response.json();
+        const latestVersion = tags[0]?.name || 'v0.1';
+        
+        // 更新版本号显示
+        const versionNum = latestVersion.replace('v', '');
+        document.getElementById('version-number').textContent = versionNum;
+        
+        // 检查是否需要弹窗
+        const lastSeen = localStorage.getItem('lastVersionSeen');
+        
+        if (latestVersion !== lastSeen) {
+          let dismissed = false;
+          
+          // 先从数据库查询 dismiss 记录 (Bug #11)
+          try {
+            const { data: notices, error: noticeError } = await supabaseClient
+              .from('version_notices')
+              .select('dismissed_at, dismiss_duration')
+              .eq('user_id', currentUser.id)
+              .eq('version', latestVersion)
+              .order('dismissed_at', { ascending: false })
+              .limit(1);
+            
+            if (!noticeError && notices && notices.length > 0) {
+              const record = notices[0];
+              const dismissedAt = new Date(record.dismissed_at).getTime();
+              const durationDays = parseInt((record.dismiss_duration || '0').replace('_day', ''));
+              const validUntil = dismissedAt + durationDays * 24 * 60 * 60 * 1000;
+              if (Date.now() < validUntil) {
+                dismissed = true;
+              }
+            }
+          } catch (e) {
+            console.error('查询版本通知记录失败:', e);
+          }
+          
+          // 本地 dismiss 检查
+          const dismissTime = localStorage.getItem('noticeDismissTime');
+          if (dismissTime && Date.now() < parseInt(dismissTime)) {
+            dismissed = true;
+          }
+          
+          if (!dismissed) {
+            // 显示弹窗
+            document.getElementById('new-version-number').textContent = latestVersion;
+            document.getElementById('version-modal').classList.add('show');
+            
+            // 记录已看到
+            localStorage.setItem('lastVersionSeen', latestVersion);
+          }
+        }
+        
+        // 缓存版本号
+        localStorage.setItem('cachedVersion', latestVersion);
+        
+      } catch (error) {
+        console.error('检查版本失败:', error);
+        
+        // 使用缓存版本号
+        const cachedVersion = localStorage.getItem('cachedVersion') || 'v0.1';
+        document.getElementById('version-number').textContent = cachedVersion.replace('v', '');
+      }
+    }
+    
+    // 关闭版本通知 - 记录到数据库 (Bug #11)
+    function dismissVersionNotice(days) {
+      const dismissTime = Date.now() + days * 24 * 60 * 60 * 1000;
+      localStorage.setItem('noticeDismissTime', dismissTime.toString());
+      
+      document.getElementById('version-modal').classList.remove('show');
+      
+      showToast(`将在${days}天内不再提醒`);
+      
+      // 记录到数据库以实现多设备同步
+      const version = document.getElementById('new-version-number').textContent;
+      supabaseClient
+        .from('version_notices')
+        .insert({
+          user_id: currentUser.id,
+          version: version,
+          dismissed_at: new Date().toISOString(),
+          dismiss_duration: `${days}_day`
+        })
+        .then(({ error }) => {
+          if (error) console.error('记录版本通知失败:', error);
+        });
+    }
+    
+    // ==================== 页面切换 ==================== //
+    
+    // 显示指定页面 - 简化逻辑，只做页面切换 (Bug #36)
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+      
+      const el = document.getElementById(pageId);
+      if (el) el.classList.add('active');
+    }
+    
+    // 显示主应用
+    function showMainApp() {
+      document.getElementById('auth-page').classList.remove('active');
+      document.getElementById('room-guide-page').classList.remove('active');
+      document.getElementById('main-app').classList.add('active');
+      document.getElementById('home-page').classList.add('active');
+    }
+    
+    // 切换Tab页面 - 懒加载 + 轮询管理 (Bug #17, #33)
+    function switchTabPage(page) {
+      // 更新Tab状态
+      document.querySelectorAll('.tab-item').forEach(tab => {
+        tab.classList.toggle('active', tab.getAttribute('data-page') === page);
+      });
+      
+      // 更新页面显示
+      document.querySelectorAll('#main-app .page').forEach(p => {
+        p.classList.remove('active');
+      });
+      
+      const pageEl = document.getElementById(`${page}-page`);
+      if (pageEl) pageEl.classList.add('active');
+      
+      // 切换页面时清除轮询 (Bug #17)
+      stopPostsPolling();
+      
+      // 懒加载 - 首次访问时加载 (Bug #33)
+      if (page === 'posts' && !loadedPages.has('posts')) {
+        loadedPages.add('posts');
+        loadPosts(true);
+      }
+      if (page === 'us' && !loadedPages.has('us')) {
+        loadedPages.add('us');
+        loadUsPage();
+      }
+      if (page === 'profile' && !loadedPages.has('profile')) {
+        loadedPages.add('profile');
+        loadProfilePage();
+      }
+      
+      // 仅当在动态墙页面时启动轮询 (Bug #17)
+      if (page === 'posts') {
+        startPostsPolling();
+      }
+    }
+    
+    // ==================== 启动应用 ==================== //
+    
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      initApp();
+    });
+    
+    // 监听认证状态变化
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        currentRoom = null;
+        stopPostsPolling();
+        loadedPages = new Set();
+        showPage('auth-page');
+      }
+    });
+  </script>
 </body>
 </html>
