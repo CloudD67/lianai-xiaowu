@@ -262,6 +262,17 @@
       display: block;
       animation: shake 0.3s;
     }
+
+    .verify-notice {
+      background: #FFF3CD;
+      border: 1px solid #FFEEBA;
+      border-radius: var(--border-radius-sm, 8px);
+      padding: 12px 16px;
+      margin-bottom: var(--spacing-lg, 16px);
+      font-size: 14px;
+      color: #856404;
+      text-align: center;
+    }
     
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -1433,8 +1444,12 @@
         </div>
         <div class="form-group">
           <label class="form-label">密码</label>
-          <input type="password" class="form-input" id="login-password" placeholder="请输入密码（至少6位）" required minlength="6">
+          <input type="password" class="form-input" id="login-password" placeholder="请输入密码（至少8位）" required minlength="8">
           <div class="form-error" id="login-password-error"></div>
+        </div>
+        <div id="email-verify-notice" class="verify-notice" style="display:none;">
+          <span id="verify-notice-text"></span>
+          <a href="javascript:void(0)" onclick="resendVerifyEmail()" style="margin-left:8px;color:var(--primary-dark);text-decoration:underline;">重新发送验证邮件</a>
         </div>
         <button type="submit" class="auth-button">登录</button>
         <div class="forgot-password-link">
@@ -1455,12 +1470,12 @@
         </div>
         <div class="form-group">
           <label class="form-label">密码</label>
-          <input type="password" class="form-input" id="register-password" placeholder="请输入密码（至少6位）" required minlength="6">
+          <input type="password" class="form-input" id="register-password" placeholder="请输入密码（至少8位，含大小写字母和数字）" required minlength="8">
           <div class="form-error" id="register-password-error"></div>
         </div>
         <div class="form-group">
           <label class="form-label">确认密码</label>
-          <input type="password" class="form-input" id="register-confirm-password" placeholder="请再次输入密码" required minlength="6">
+          <input type="password" class="form-input" id="register-confirm-password" placeholder="请再次输入密码" required minlength="8">
           <div class="form-error" id="register-confirm-password-error"></div>
         </div>
         <button type="submit" class="auth-button">注册</button>
@@ -2383,6 +2398,52 @@
       }
     }
     
+    // ==================== Auth 错误码映射 ==================== //
+
+    const AUTH_ERROR_MAP = {
+      'Invalid login credentials': '邮箱或密码错误，请重新输入',
+      'Email not confirmed': '请先验证邮箱后再登录，查收注册时发送的验证邮件',
+      'User already registered': '该邮箱已注册，请直接登录',
+      'over_email_send_rate_limit': '邮件发送过于频繁，请1分钟后再试',
+      'Password should be at least': '密码不符合要求，至少8位且包含大小写字母和数字',
+      'Signup requires a valid email': '请输入有效的邮箱地址',
+      'Network request failed': '网络连接失败，请检查网络后重试',
+      'rate_limit_exceeded': '操作过于频繁，请稍后再试',
+      'JWT expired': '登录已过期，请重新登录',
+    };
+
+    function getAuthErrorMessage(error) {
+      const msg = error.message || error.msg || String(error);
+      for (const [key, value] of Object.entries(AUTH_ERROR_MAP)) {
+        if (msg.includes(key)) return value;
+      }
+      return msg || '操作失败，请稍后重试';
+    }
+
+    // 单飞锁：防止重复提交
+    const _flightLocks = {};
+    function acquireFlightLock(key) {
+      if (_flightLocks[key]) return false;
+      _flightLocks[key] = true;
+      return true;
+    }
+    function releaseFlightLock(key) {
+      delete _flightLocks[key];
+    }
+
+    // 重新发送验证邮件
+    async function resendVerifyEmail() {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) { showToast('请先输入邮箱'); return; }
+      try {
+        const { error } = await supabaseClient.auth.resend({ type: 'signup', email });
+        if (error) throw error;
+        showToast('验证邮件已重新发送，请查收');
+      } catch (error) {
+        showToast(getAuthErrorMessage(error));
+      }
+    }
+
     // ==================== 用户认证相关 ==================== //
     
     // 切换登录/注册Tab
@@ -2397,27 +2458,40 @@
     // 处理登录
     async function handleLogin(event) {
       event.preventDefault();
-      
+
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
+
+      // 单飞锁：防止重复提交
+      if (!acquireFlightLock('login')) return;
 
       // P1-5: 限流防刷
       if (!rateLimit('login_' + email, 3000)) {
         showError('login-password-error', '操作过于频繁，请稍后再试');
+        releaseFlightLock('login');
         return;
       }
 
       // 验证输入
       if (!validateEmail(email)) {
         showError('login-email-error', '邮箱格式不正确');
+        releaseFlightLock('login');
         return;
       }
 
-      // P1-4: 兼容旧密码（6位）但提示强度
-      if (password.length < 6) {
-        showError('login-password-error', '密码至少需要6位');
-        return;
+      // 密码最低8位（兼容旧6位密码但提示升级）
+      if (password.length < 8) {
+        if (password.length < 6) {
+          showError('login-password-error', '密码至少需要8位');
+          releaseFlightLock('login');
+          return;
+        }
+        // 6-7位旧密码允许尝试，但提示
       }
+
+      // 隐藏之前的验证提示
+      const verifyNotice = document.getElementById('email-verify-notice');
+      if (verifyNotice) verifyNotice.style.display = 'none';
       
       try {
         setButtonLoading(event.target.querySelector('.auth-button'), true);
@@ -2427,6 +2501,11 @@
         if (error) throw error;
         
         currentUser = data.user;
+
+        // 如果是旧密码（不足8位），提示用户修改密码
+        if (password.length < 8) {
+          showToast('密码强度不足，建议尽快修改为8位以上含大小写字母和数字的密码');
+        }
         
         // 检查用户房间状态
         const roomId = await checkUserRoom(currentUser.id);
@@ -2442,50 +2521,71 @@
         
       } catch (error) {
         console.error('登录失败:', error);
-        showToast('登录失败：' + error.message);
+        const friendlyMsg = getAuthErrorMessage(error);
+
+        // 邮箱未验证时显示验证提示条
+        if (error.message && error.message.includes('Email not confirmed')) {
+          const verifyNotice = document.getElementById('email-verify-notice');
+          const verifyText = document.getElementById('verify-notice-text');
+          if (verifyNotice && verifyText) {
+            verifyText.textContent = '您的邮箱尚未验证，请查收验证邮件后再登录';
+            verifyNotice.style.display = 'block';
+          }
+          showError('login-email-error', friendlyMsg);
+        } else {
+          showError('login-password-error', friendlyMsg);
+        }
       } finally {
         setButtonLoading(event.target.querySelector('.auth-button'), false);
+        releaseFlightLock('login');
       }
     }
     
     // 处理注册 (Bug #13 确认密码, #24 注册后验证)
     async function handleRegister(event) {
       event.preventDefault();
-      
+
       const email = document.getElementById('register-email').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('register-confirm-password').value;
       const nickname = document.getElementById('register-nickname').value.trim();
 
+      // 单飞锁：防止重复提交
+      if (!acquireFlightLock('register')) return;
+
       // P1-5: 限流防刷
       if (!rateLimit('register_' + email, 5000)) {
         showError('register-email-error', '操作过于频繁，请稍后再试');
+        releaseFlightLock('register');
         return;
       }
 
       // 验证输入
       if (!validateEmail(email)) {
         showError('register-email-error', '邮箱格式不正确');
+        releaseFlightLock('register');
         return;
       }
 
       // P1-3: 昵称必填
       if (!nickname) {
         showError('register-email-error', '请输入昵称');
-        // 把焦点给昵称输入框
         document.getElementById('register-nickname').focus();
+        releaseFlightLock('register');
         return;
       }
 
-      // P1-4: 密码强度校验 - 至少 8 位含字母和数字
+      // 密码强度校验 - 至少 8 位含大小写字母和数字
       if (!validatePassword(password)) {
-        showError('register-password-error', '密码至少8位，需同时包含字母和数字');
+        showError('register-password-error', '密码至少8位，需同时包含大小写字母和数字');
+        releaseFlightLock('register');
         return;
       }
 
       // 验证两次密码一致 (Bug #13)
       if (password !== confirmPassword) {
         showError('register-confirm-password-error', '两次输入的密码不一致');
+        releaseFlightLock('register');
         return;
       }
       
@@ -2493,29 +2593,36 @@
         setButtonLoading(event.target.querySelector('.auth-button'), true);
         
         // 注册用户
-        const { data: authData, error: authError } = await supabaseClient.auth.signUp({ email, password });
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { data: { nickname } }
+        });
         
         if (authError) throw authError;
         
         currentUser = authData.user;
         
         // 创建用户资料
-        const { error: profileError } = await supabaseClient
-          .from('profiles')
-          .insert({
-            id: currentUser.id,
-            nickname: nickname,
-            avatar: '',
-            love_declaration: '',
-            membership_level: 'free'
-          });
-        
-        if (profileError) {
-          console.error('创建用户资料失败:', profileError);
+        if (currentUser) {
+          const { error: profileError } = await supabaseClient
+            .from('profiles')
+            .insert({
+              id: currentUser.id,
+              nickname: nickname,
+              avatar: '',
+              love_declaration: '',
+              membership_level: 'free'
+            });
+          
+          if (profileError) {
+            console.error('创建用户资料失败:', profileError);
+          }
         }
         
         // 检查是否需要邮箱验证 (Bug #24)
         if (authData.session) {
+          // 无需邮箱验证，直接登录
           showToast('注册成功');
           const roomId = await checkUserRoom(currentUser.id);
           if (roomId) {
@@ -2525,17 +2632,33 @@
             showPage('room-guide-page');
           }
         } else {
-          // 需要邮箱验证
+          // 需要邮箱验证 - 显示醒目提示条
+          const verifyNotice = document.getElementById('email-verify-notice');
+          const verifyText = document.getElementById('verify-notice-text');
+          if (verifyNotice && verifyText) {
+            verifyText.textContent = '注册成功！验证邮件已发送到 ' + email + '，请查收后登录';
+            verifyNotice.style.display = 'block';
+          }
           showToast('注册成功，请查收验证邮件后再登录');
-          showPage('auth-page');
+          // 切换到登录页并预填邮箱
           switchAuthTab('login');
+          document.getElementById('login-email').value = email;
         }
         
       } catch (error) {
         console.error('注册失败:', error);
-        showToast('注册失败：' + error.message);
+        const friendlyMsg = getAuthErrorMessage(error);
+        // 根据错误类型显示在不同位置
+        if (error.message && error.message.includes('already registered')) {
+          showError('register-email-error', friendlyMsg);
+        } else if (error.message && error.message.includes('Password')) {
+          showError('register-password-error', friendlyMsg);
+        } else {
+          showError('register-email-error', friendlyMsg);
+        }
       } finally {
         setButtonLoading(event.target.querySelector('.auth-button'), false);
+        releaseFlightLock('register');
       }
     }
     
@@ -2601,19 +2724,25 @@
         showToast('邮箱格式不正确');
         return;
       }
+
+      // 单飞锁
+      if (!acquireFlightLock('reset_password')) return;
       
       try {
         setButtonLoading(button, true);
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin
+        });
         if (error) throw error;
         
         hideResetPasswordModal();
         showToast('重置邮件已发送，请查收');
       } catch (error) {
         console.error('发送重置邮件失败:', error);
-        showToast('发送失败：' + error.message);
+        showToast(getAuthErrorMessage(error));
       } finally {
         setButtonLoading(button, false);
+        releaseFlightLock('reset_password');
       }
     }
     
@@ -4243,8 +4372,29 @@
         stopPostsPolling();
         loadedPages = new Set();
         showPage('auth-page');
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Token 刷新成功，无需操作
+        console.log('Token 已自动刷新');
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // 密码重置回调，可引导用户设置新密码
+        showToast('请设置新密码');
       }
     });
+
+    // 处理 Supabase auth 错误回调（URL hash 中的错误）
+    function handleAuthCallbackError() {
+      const hash = window.location.hash;
+      if (hash && hash.includes('error=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const errorDesc = params.get('error_description');
+        if (errorDesc) {
+          showToast(decodeURIComponent(errorDesc));
+          // 清除 URL hash
+          history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    }
+    handleAuthCallbackError();
   </script>
 </body>
 </html>
