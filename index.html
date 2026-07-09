@@ -1744,8 +1744,7 @@
   <script>
     // ==================== 配置信息 ==================== //
     const SUPABASE_URL = 'https://afkkzycjnefxswrcchff.supabase.co';
-    // 从全局变量读取（部署时注入），回退到默认值（需用户在 Dashboard 获取真实 anon key 后替换）
-    const SUPABASE_ANON_KEY = (window.__SUPABASE_ANON_KEY) || 'sb_publishable_swfz7XdEZHYZFZSWijfNPW_6DcnF5uM';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFma2t6eWNqbmVmeHN3cmNjaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0ODc4MzQsImV4cCI6MjA5OTA2MzgzNH0.Bx9c1z_ClSEeiwJgMVecJp9w1_1UZ-vYwk4eEa7eOuA';
     const GITHUB_REPO = 'CloudD67/lianai-xiaowu';
     // P0-1: 仅本地开发使用 Mock，线上强制走真实 Supabase
     const USE_MOCK = location.hostname === 'localhost'
