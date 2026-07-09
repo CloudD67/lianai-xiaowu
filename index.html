@@ -3,9 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="恋爱小屋 - 为情侣打造的温馨互动平台">
+  <meta name="description" content="恋爱小屋 - 为情侣打造的温馨互动平台，一起打卡、记录动态、管理纪念日">
+  <meta name="keywords" content="恋爱小屋,情侣app,情侣打卡,恋爱记录,纪念日,情侣社交">
+  <meta name="author" content="恋爱小屋">
+  <meta name="theme-color" content="#FDE2D3">
+
+  <!-- P2-6: OpenGraph / 微信分享 -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="恋爱小屋 - 记录每一刻的温馨时光">
+  <meta property="og:description" content="为情侣打造的温馨互动平台，一起打卡、记录动态、管理纪念日">
+  <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ctext y='.1em' font-size='160' x='20'%3E%F0%9F%92%95%3C/text%3E%3C/svg%3E">
+  <meta property="og:site_name" content="恋爱小屋">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="恋爱小屋 - 记录每一刻的温馨时光">
+  <meta name="twitter:description" content="为情侣打造的温馨互动平台">
+
+  <!-- P2-6: Favicon - emoji SVG -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ctext y='.1em' font-size='160' x='20'%3E%F0%9F%92%95%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ctext y='.1em' font-size='160' x='20'%3E%F0%9F%92%95%3C/text%3E%3C/svg%3E">
+
+  <!-- P2-6: PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
   <title>恋爱小屋</title>
-  
+
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -1725,7 +1746,10 @@
     const SUPABASE_URL = 'https://afkkzycjnefxswrcchff.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_swfz7XdEZHYZFZSWijfNPW_6DcnF5uM';
     const GITHUB_REPO = 'CloudD67/lianai-xiaowu';
-    const USE_MOCK = true; // Mock模式，使用localStorage模拟后端
+    // P0-1: 仅本地开发使用 Mock，线上强制走真实 Supabase
+    const USE_MOCK = location.hostname === 'localhost'
+                  || location.hostname === '127.0.0.1'
+                  || location.protocol === 'file:';
 
     // ==================== Mock Supabase Client (localStorage后端) ==================== //
     function createMockSupabase() {
@@ -2243,11 +2267,27 @@
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return regex.test(email);
     }
-    
+
+    // P1-4: 密码强度校验 - 至少 8 位，含字母和数字
+    function validatePassword(password) {
+      if (typeof password !== 'string') return false;
+      return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&_-]{8,}$/.test(password);
+    }
+
     // 验证邀请码格式
     function validateInviteCode(code) {
       const regex = /^[A-Z0-9]{6}$/;
       return regex.test(code);
+    }
+
+    // P1-5: 简易前端限流 - 每个 key 默认 3 秒一次
+    const _rateLimitMap = new Map();
+    function rateLimit(key, minIntervalMs = 3000) {
+      const now = Date.now();
+      const last = _rateLimitMap.get(key) || 0;
+      if (now - last < minIntervalMs) return false;
+      _rateLimitMap.set(key, now);
+      return true;
     }
     
     // 绑定模态框点击遮罩关闭 (Bug #19)
@@ -2260,12 +2300,41 @@
         });
       });
     }
+
+    // P2-1: 事件委托 - 处理动态卡片的删除/图片预览，避免内联 onclick 的 XSS 风险
+    function bindPostListDelegation() {
+      const postsList = document.getElementById('posts-list');
+      if (!postsList) return;
+      // 防止重复绑定
+      if (postsList.dataset.delegationBound === '1') return;
+      postsList.dataset.delegationBound = '1';
+
+      postsList.addEventListener('click', (e) => {
+        const target = e.target;
+        // 删除动态
+        const delBtn = target.closest('[data-action="delete-post"]');
+        if (delBtn) {
+          const postId = delBtn.getAttribute('data-post-id');
+          if (postId) deletePost(postId);
+          return;
+        }
+        // 查看图片
+        const imgEl = target.closest('[data-action="view-image"]');
+        if (imgEl) {
+          const url = imgEl.getAttribute('data-image-url');
+          if (url) viewImage(url);
+          return;
+        }
+      });
+    }
     
     // ==================== 初始化应用 ==================== //
     async function initApp() {
       try {
         // 绑定模态框点击外部关闭
         bindModalClickOutside();
+        // P2-1: 绑定动态列表事件委托
+        bindPostListDelegation();
         
         // 先读 localStorage 立即应用主题和背景 (Bug #9, #10)
         const cachedTheme = localStorage.getItem('theme');
@@ -2331,13 +2400,20 @@
       
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
-      
+
+      // P1-5: 限流防刷
+      if (!rateLimit('login_' + email, 3000)) {
+        showError('login-password-error', '操作过于频繁，请稍后再试');
+        return;
+      }
+
       // 验证输入
       if (!validateEmail(email)) {
         showError('login-email-error', '邮箱格式不正确');
         return;
       }
-      
+
+      // P1-4: 兼容旧密码（6位）但提示强度
       if (password.length < 6) {
         showError('login-password-error', '密码至少需要6位');
         return;
@@ -2380,18 +2456,33 @@
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('register-confirm-password').value;
       const nickname = document.getElementById('register-nickname').value.trim();
-      
+
+      // P1-5: 限流防刷
+      if (!rateLimit('register_' + email, 5000)) {
+        showError('register-email-error', '操作过于频繁，请稍后再试');
+        return;
+      }
+
       // 验证输入
       if (!validateEmail(email)) {
         showError('register-email-error', '邮箱格式不正确');
         return;
       }
-      
-      if (password.length < 6) {
-        showError('register-password-error', '密码至少需要6位');
+
+      // P1-3: 昵称必填
+      if (!nickname) {
+        showError('register-email-error', '请输入昵称');
+        // 把焦点给昵称输入框
+        document.getElementById('register-nickname').focus();
         return;
       }
-      
+
+      // P1-4: 密码强度校验 - 至少 8 位含字母和数字
+      if (!validatePassword(password)) {
+        showError('register-password-error', '密码至少8位，需同时包含字母和数字');
+        return;
+      }
+
       // 验证两次密码一致 (Bug #13)
       if (password !== confirmPassword) {
         showError('register-confirm-password-error', '两次输入的密码不一致');
@@ -2461,11 +2552,14 @@
         localStorage.removeItem('lastVersionSeen');
         localStorage.removeItem('noticeDismissTime');
         
-        // 清空所有 input 和 textarea (Bug #26)
-        document.querySelectorAll('input').forEach(input => {
-          input.value = '';
+        // P2-5: 只清空登录注册表单，不破坏其他 input（如版本弹窗）
+        ['login-email', 'login-password', 'register-email', 'register-nickname',
+         'register-password', 'register-confirm-password', 'invite-code-input',
+         'reset-email'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
         });
-        document.querySelectorAll('textarea').forEach(ta => {
+        document.querySelectorAll('#login-form textarea, #register-form textarea').forEach(ta => {
           ta.value = '';
         });
         
@@ -2548,40 +2642,55 @@
       }
     }
     
-    // 生成随机邀请码 - 最大重试 10 次，直接插入捕获唯一约束冲突 (Bug #3, #6)
+    // 生成随机邀请码 - 先查后插，避免冲突时残留脏数据 (P1-1 修复 Bug #3, #6)
     async function generateInviteCode() {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       const maxRetries = 10;
-      
+
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         let code = '';
         for (let i = 0; i < 6; i++) {
           code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        
-        // 直接插入 rooms 表，捕获唯一约束冲突 (Bug #6)
+
+        // 先查询是否已存在，避免插入脏数据
+        const { data: existing, error: queryError } = await supabaseClient
+          .from('rooms')
+          .select('id')
+          .eq('invite_code', code)
+          .maybeSingle();
+
+        if (queryError && queryError.code !== 'PGRST116') throw queryError;
+        if (existing) continue; // 已存在则重试
+
+        // 不存在则插入
         const { data, error } = await supabaseClient
           .from('rooms')
           .insert({ invite_code: code, created_by: currentUser.id })
           .select()
           .single();
-        
+
         if (!error) {
           return { code, room: data };
         }
-        
-        // 23505 = 唯一约束冲突，继续重试
+
+        // 23505 = 唯一约束冲突（并发情况下仍可能），继续重试
         if (error.code !== '23505') {
           throw error;
         }
       }
-      
+
       // 超过最大重试次数 (Bug #3)
       throw new Error('生成邀请码失败，请重试');
     }
     
     // 创建房间
     async function createRoom() {
+      // P1-5: 限流防刷
+      if (!rateLimit('createRoom', 5000)) {
+        showToast('操作过于频繁，请稍后再试');
+        return;
+      }
       try {
         showToast('正在创建房间...');
         
@@ -2623,65 +2732,95 @@
       document.getElementById('join-room-modal').classList.remove('active');
     }
     
-    // 加入房间 - 插入后验证人数防止竞态条件 (Bug #5)
+    // 加入房间 - P1-2: 数据库唯一约束+RPC 事务保护，杜绝竞态超员
     async function joinRoom() {
       const inviteCode = document.getElementById('invite-code-input').value.trim().toUpperCase();
-      
+
       // 验证邀请码
       if (!validateInviteCode(inviteCode)) {
         showError('invite-code-error', '邀请码格式不正确（6位大写字母或数字）');
         return;
       }
-      
+
       try {
         showToast('正在加入房间...');
-        
+
         // 查询房间
         const { data: room, error: roomError } = await supabaseClient
           .from('rooms')
           .select('id, invite_code')
           .eq('invite_code', inviteCode)
           .single();
-        
+
         if (roomError) throw new Error('邀请码无效');
-        
-        // 查询当前房间人数
-        const { count, error: countError } = await supabaseClient
+
+        // 防止重复加入自己的房间
+        const { data: myMembership } = await supabaseClient
           .from('room_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('room_id', room.id);
-        
-        if (countError) throw countError;
-        
-        if (count >= 2) {
-          showToast('房间已满（最多2人）');
+          .select('id')
+          .eq('room_id', room.id)
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+
+        if (myMembership) {
+          showToast('你已经在这个房间里了');
+          localStorage.setItem('roomId', room.id);
+          await loadRoomData(room.id);
+          showMainApp();
+          hideJoinRoomModal();
           return;
         }
-        
-        // 加入房间
-        const { error: memberError } = await supabaseClient
-          .from('room_members')
-          .insert({ room_id: room.id, user_id: currentUser.id });
-        
-        if (memberError) throw memberError;
-        
-        // 插入后再次查询人数，防止竞态条件 (Bug #5)
-        const { count: countAfter, error: countError2 } = await supabaseClient
-          .from('room_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('room_id', room.id);
-        
-        if (countError2) throw countError2;
-        
-        if (countAfter > 2) {
-          // 超员，删除刚插入的记录
-          await supabaseClient
+
+        // 优先调用 RPC 事务函数 join_room_safe（见 supabase.sql）
+        // 该函数在数据库层用锁+计数保证原子性，杜绝竞态超员
+        const { data: rpcResult, error: rpcError } = await supabaseClient
+          .rpc('join_room_safe', { p_room_id: room.id, p_user_id: currentUser.id });
+
+        if (rpcError) {
+          // 如果 RPC 不存在（未部署 SQL），回退到双查询逻辑
+          console.warn('RPC join_room_safe 不可用，回退到双查询逻辑:', rpcError.message);
+
+          // 查询当前房间人数
+          const { count, error: countError } = await supabaseClient
             .from('room_members')
-            .delete()
-            .eq('room_id', room.id)
-            .eq('user_id', currentUser.id);
-          showToast('房间已满（最多2人）');
-          return;
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id);
+          if (countError) throw countError;
+          if (count >= 2) {
+            showToast('房间已满（最多2人）');
+            return;
+          }
+
+          // 加入房间
+          const { error: memberError } = await supabaseClient
+            .from('room_members')
+            .insert({ room_id: room.id, user_id: currentUser.id });
+          if (memberError) {
+            // 23505 = 唯一约束冲突（已加入或竞态），友好提示
+            if (memberError.code === '23505') {
+              showToast('加入失败：房间已满或你已在房间中');
+              return;
+            }
+            throw memberError;
+          }
+
+          // 插入后再次校验
+          const { count: countAfter } = await supabaseClient
+            .from('room_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id);
+          if (countAfter > 2) {
+            await supabaseClient
+              .from('room_members')
+              .delete()
+              .eq('room_id', room.id)
+              .eq('user_id', currentUser.id);
+            showToast('房间已满（最多2人）');
+            return;
+          }
+        } else if (!rpcResult?.success) {
+          // RPC 返回失败（房间满或其他）
+          throw new Error(rpcResult?.message || '加入房间失败');
         }
         
         localStorage.setItem('roomId', room.id);
@@ -2855,33 +2994,54 @@
       document.getElementById('love-quote-text').textContent = LOVE_QUOTES[index];
     }
 
-    // 5:20 情话推送 - 每分钟检查一次
+    // 5:20 情话推送 - P2-3: 精确 setTimeout，省电
     let love520Timer = null;
     let last520Date = '';
 
+    // 计算到下一个 5:20 或 17:20 的毫秒数
+    function msToNext520() {
+      const now = new Date();
+      const targets = [5, 17]; // 5:20 和 17:20
+      let minDelay = Infinity;
+      for (const h of targets) {
+        const target = new Date(now);
+        target.setHours(h, 20, 0, 0);
+        if (target <= now) target.setDate(target.getDate() + 1);
+        const delay = target - now;
+        if (delay < minDelay) minDelay = delay;
+      }
+      return minDelay;
+    }
+
+    function fire520() {
+      const now = new Date();
+      const hours = now.getHours();
+      const today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+      if (today === last520Date && hours === 5) return; // 当天 5:20 已发过
+      last520Date = today;
+      const quote = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
+      const title = hours === 5 ? '早安，亲爱的' : '傍晚好，亲爱的';
+      if (window.Notification && Notification.permission === 'granted') {
+        new Notification(title, { body: quote, icon: '💕' });
+      }
+      showToast(`💌 ${title}：${quote}`);
+    }
+
     function start520Notification() {
       stop520Notification();
-      love520Timer = setInterval(() => {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
-
-        if ((hours === 5 || hours === 17) && minutes === 20 && today !== last520Date) {
-          last520Date = today;
-          const quote = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
-          const title = hours === 5 ? '早安，亲爱的' : '傍晚好，亲爱的';
-          if (window.Notification && Notification.permission === 'granted') {
-            new Notification(title, { body: quote, icon: '💕' });
-          }
-          showToast(`💌 ${title}：${quote}`);
-        }
-      }, 60000);
+      const scheduleNext = () => {
+        const delay = msToNext520();
+        love520Timer = setTimeout(() => {
+          fire520();
+          scheduleNext(); // 递归调度下一次
+        }, delay);
+      };
+      scheduleNext();
     }
 
     function stop520Notification() {
       if (love520Timer) {
-        clearInterval(love520Timer);
+        clearTimeout(love520Timer);
         love520Timer = null;
       }
     }
@@ -3073,14 +3233,16 @@
       }
       
       // 仅自己发布的动态显示删除按钮 (Bug #8)
+      // P2-1: 用 data 属性代替内联 onclick，避免 XSS 逃逸
       const isOwn = post.user_id === (currentUser && currentUser.id);
-      const deleteBtn = isOwn ? `<button class="delete-post-btn" onclick="deletePost('${escapeHtml(post.id)}')">删除</button>` : '';
-      
+      const deleteBtn = isOwn ? `<button class="delete-post-btn" data-action="delete-post" data-post-id="${escapeHtml(post.id)}">删除</button>` : '';
+
       // 图片 URL 用正则验证格式 (Bug #4)
+      // P2-1: 用 data 属性代替内联 onclick
       const imagesHtml = images.length > 0
         ? `<div class="post-images">${images.map(img => {
             const safeUrl = validateImageUrl(img) ? escapeHtml(img) : '';
-            return safeUrl ? `<img src="${safeUrl}" class="post-image" onclick="viewImage('${safeUrl}')">` : '';
+            return safeUrl ? `<img src="${safeUrl}" class="post-image" data-action="view-image" data-image-url="${safeUrl}">` : '';
           }).join('')}</div>`
         : '';
       
@@ -3172,10 +3334,17 @@
     async function handleImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      
+
+      // P1-6: 文件大小预校验
+      if (!validateImageFileSize(file)) {
+        showToast('图片过大（最大 8MB）');
+        event.target.value = '';
+        return;
+      }
+
       try {
         showToast('正在处理图片...');
-        
+
         // 读取文件
         const reader = new FileReader();
         const base64 = await new Promise((resolve, reject) => {
@@ -3183,27 +3352,27 @@
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        
-        // 检查大小，超过 500KB 则压缩
+
+        // P1-6: 超过 200KB 一律压缩
         let finalImage = base64;
-        if (base64.length > 500 * 1024) {
+        if (base64.length > 200 * 1024) {
           finalImage = await compressImage(base64);
         }
-        
+
         document.getElementById('image-url-input').value = finalImage;
-        
+
         // 在 upload-option 内显示预览缩略图 (Bug #20)
         document.getElementById('image-upload-preview').innerHTML = `<img src="${escapeHtml(finalImage)}" alt="预览">`;
-        
+
         showToast('图片已处理');
-        
+
       } catch (error) {
         console.error('图片处理失败:', error);
         showToast('图片处理失败');
       }
     }
     
-    // 压缩图片 - 最多 3 步，不循环 (Bug #32, #37)
+    // 压缩图片 - P1-6: 目标 200KB，4 步渐进压缩，避免 base64 撑爆数据库
     async function compressImage(base64) {
       const img = new Image();
       img.src = base64;
@@ -3211,25 +3380,36 @@
         img.onload = resolve;
         img.onerror = reject;
       });
-      
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       let width = img.width;
       let height = img.height;
-      const maxSize = 500 * 1024;
-      
-      // 步骤1: 用 quality=0.5 压缩，原尺寸
+      const maxSize = 200 * 1024; // P1-6: 从 500KB 收紧到 200KB
+
+      // 步骤1: 缩放到最大边 1280px
+      const MAX_SIDE = 1280;
+      if (Math.max(width, height) > MAX_SIDE) {
+        const scale = MAX_SIDE / Math.max(width, height);
+        width = Math.floor(width * scale);
+        height = Math.floor(height * scale);
+      }
       canvas.width = width;
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
-      let compressed = canvas.toDataURL('image/jpeg', 0.5);
-      
-      // 步骤2: 如果仍超 500KB，降到 quality=0.3
+      let compressed = canvas.toDataURL('image/jpeg', 0.7);
+
+      // 步骤2: 降到 quality=0.5
+      if (compressed.length > maxSize) {
+        compressed = canvas.toDataURL('image/jpeg', 0.5);
+      }
+
+      // 步骤3: 降到 quality=0.3
       if (compressed.length > maxSize) {
         compressed = canvas.toDataURL('image/jpeg', 0.3);
       }
-      
-      // 步骤3: 如果仍超，缩放尺寸到 80%
+
+      // 步骤4: 缩放尺寸到 80%
       if (compressed.length > maxSize) {
         width = Math.floor(width * 0.8);
         height = Math.floor(height * 0.8);
@@ -3238,15 +3418,27 @@
         ctx.drawImage(img, 0, 0, width, height);
         compressed = canvas.toDataURL('image/jpeg', 0.3);
       }
-      
+
       return compressed;
+    }
+
+    // P1-6: 文件大小预校验，拒绝过大文件
+    const MAX_IMAGE_FILE_SIZE = 8 * 1024 * 1024; // 8MB 原始文件上限
+    function validateImageFileSize(file) {
+      return file && file.size <= MAX_IMAGE_FILE_SIZE;
     }
     
     // 提交动态
     async function submitPost(button) {
       const content = document.getElementById('post-content').value.trim();
       const imageUrl = document.getElementById('image-url-input').value.trim();
-      
+
+      // P1-5: 限流防刷
+      if (!rateLimit('submitPost', 3000)) {
+        showToast('发布过于频繁，请稍后再试');
+        return;
+      }
+
       if (!content && !imageUrl) {
         showToast('请输入内容或上传图片');
         return;
@@ -3673,38 +3865,50 @@
       }
     }
     
-    // 切换主题 - 先查询是否存在 (Bug #40)
-    async function switchTheme(theme) {
+    // 切换主题 - P2-2: 防抖写入数据库，避免快速点击并发
+    let _switchThemeTimer = null;
+    function switchTheme(theme) {
       applyTheme(theme);
       localStorage.setItem('theme', theme);
-      
-      try {
-        await upsertThemePreference({ theme_name: theme });
-      } catch (error) {
-        console.error('切换主题失败:', error);
-      }
-      
+
+      // P2-2: 防抖 500ms
+      if (_switchThemeTimer) clearTimeout(_switchThemeTimer);
+      _switchThemeTimer = setTimeout(async () => {
+        try {
+          await upsertThemePreference({ theme_name: theme });
+        } catch (error) {
+          console.error('切换主题失败:', error);
+        }
+      }, 500);
+
       showToast('主题已切换');
     }
     
-    // 上传背景图 - 压缩至 500KB 转 Base64 (Bug #10)
+    // 上传背景图 - P1-6: 文件大小预校验 + 200KB 压缩
     async function uploadBackgroundImage(event) {
       const file = event.target.files[0];
       if (!file) return;
-      
+
+      // P1-6: 文件大小预校验
+      if (!validateImageFileSize(file)) {
+        showToast('图片过大（最大 8MB）');
+        event.target.value = '';
+        return;
+      }
+
       try {
         showToast('正在处理背景图...');
-        
+
         const reader = new FileReader();
         const base64 = await new Promise((resolve, reject) => {
           reader.onload = () => resolve(reader.result);
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        
-        // 压缩至 500KB
+
+        // P1-6: 超过 200KB 压缩
         let compressed = base64;
-        if (base64.length > 500 * 1024) {
+        if (base64.length > 200 * 1024) {
           compressed = await compressImage(base64);
         }
         
@@ -3804,7 +4008,14 @@
     async function handleAvatarUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      
+
+      // P1-6: 文件大小预校验
+      if (!validateImageFileSize(file)) {
+        showToast('图片过大（最大 8MB）');
+        event.target.value = '';
+        return;
+      }
+
       try {
         const reader = new FileReader();
         const base64 = await new Promise((resolve, reject) => {
@@ -3812,12 +4023,12 @@
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        
+
         let compressed = base64;
-        if (base64.length > 500 * 1024) {
+        if (base64.length > 200 * 1024) {
           compressed = await compressImage(base64);
         }
-        
+
         pendingAvatar = compressed;
         document.getElementById('edit-avatar-preview').innerHTML = `<img src="${escapeHtml(compressed)}" alt="头像预览">`;
       } catch (error) {
